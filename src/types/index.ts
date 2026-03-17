@@ -1,258 +1,129 @@
-type WeatherConditionCode =
-  | 200
-  | 201
-  | 202
-  | 210
-  | 211
-  | 212
-  | 221
-  | 230
-  | 231
-  | 232
-  | 300
-  | 301
-  | 302
-  | 310
-  | 311
-  | 312
-  | 313
-  | 314
-  | 321
-  | 500
-  | 501
-  | 502
-  | 503
-  | 504
-  | 511
-  | 520
-  | 521
-  | 522
-  | 531
-  | 600
-  | 601
-  | 602
-  | 611
-  | 612
-  | 613
-  | 615
-  | 616
-  | 620
-  | 621
-  | 622
-  | 701
-  | 711
-  | 721
-  | 731
-  | 741
-  | 751
-  | 761
-  | 762
-  | 771
-  | 781
-  | 800
-  | 801
-  | 802
-  | 803
-  | 804
-
-type WeatherConditionMain =
-  | "Thunderstorm"
-  | "Drizzle"
-  | "Rain"
-  | "Snow"
-  | "Mist"
-  | "Smoke"
-  | "Haze"
-  | "Dust"
-  | "Fog"
-  | "Sand"
-  | "Ash"
-  | "Squall"
-  | "Tornado"
-  | "Clear"
-  | "Clouds"
-
-type WeatherConditionDescription =
-  | "thunderstorm with light rain"
-  | "thunderstorm with rain"
-  | "thunderstorm with heavy rain"
-  | "light thunderstorm"
-  | "thunderstorm"
-  | "heavy thunderstorm"
-  | "ragged thunderstorm"
-  | "thunderstorm with light drizzle"
-  | "thunderstorm with drizzle"
-  | "thunderstorm with heavy drizzle"
-  | "light intensity drizzle"
-  | "drizzle"
-  | "heavy intensity drizzle"
-  | "light intensity drizzle rain"
-  | "drizzle rain"
-  | "heavy intensity drizzle rain"
-  | "shower rain and drizzle"
-  | "heavy shower rain and drizzle"
-  | "shower drizzle"
-  | "light rain"
-  | "moderate rain"
-  | "heavy intensity rain"
-  | "very heavy rain"
-  | "extreme rain"
-  | "freezing rain"
-  | "light intensity shower rain"
-  | "shower rain"
-  | "heavy intensity shower rain"
-  | "ragged shower rain"
-  | "light snow"
-  | "snow"
-  | "heavy snow"
-  | "sleet"
-  | "light shower sleet"
-  | "shower sleet"
-  | "light rain and snow"
-  | "rain and snow"
-  | "light shower snow"
-  | "shower snow"
-  | "heavy shower snow"
-  | "mist"
-  | "smoke"
-  | "haze"
-  | "sand/dust whirls"
-  | "fog"
-  | "sand"
-  | "dust"
-  | "volcanic ash"
-  | "squalls"
-  | "tornado"
-  | "clear sky"
-  | "few clouds: 11-25%"
-  | "scattered clouds: 25-50%"
-  | "broken clouds: 51-84%"
-  | "overcast clouds: 85-100%"
-
-type WeatherConditionIcon =
-  | "01d"
-  | "02d"
-  | "03d"
-  | "04d"
-  | "09d"
-  | "10d"
-  | "11d"
-  | "13d"
-  | "50d"
-  | "01n"
-  | "02n"
-  | "03n"
-  | "04n"
-  | "09n"
-  | "10n"
-  | "11n"
-  | "13n"
-  | "50n"
-
-export interface WeatherCondition {
-  id: WeatherConditionCode
-  main: WeatherConditionMain
-  description: WeatherConditionDescription
-  icon: WeatherConditionIcon
-}
+// WMO Weather interpretation codes used by Open-Meteo
+export type WMOCode =
+  | 0 // Clear sky
+  | 1 // Mainly clear
+  | 2 // Partly cloudy
+  | 3 // Overcast
+  | 45 // Fog
+  | 48 // Depositing rime fog
+  | 51 // Drizzle: light
+  | 53 // Drizzle: moderate
+  | 55 // Drizzle: dense
+  | 56 // Freezing drizzle: light
+  | 57 // Freezing drizzle: heavy
+  | 61 // Rain: slight
+  | 63 // Rain: moderate
+  | 65 // Rain: heavy
+  | 66 // Freezing rain: light
+  | 67 // Freezing rain: heavy
+  | 71 // Snow: slight
+  | 73 // Snow: moderate
+  | 75 // Snow: heavy
+  | 77 // Snow grains
+  | 80 // Rain showers: slight
+  | 81 // Rain showers: moderate
+  | 82 // Rain showers: violent
+  | 85 // Snow showers: slight
+  | 86 // Snow showers: heavy
+  | 95 // Thunderstorm: slight or moderate
+  | 96 // Thunderstorm with slight hail
+  | 99 // Thunderstorm with heavy hail
 
 export interface CurrentWeather {
-  dt: number
-  sunrise: number
-  sunset: number
-  temp: number
-  feels_like: number
-  pressure: number
-  humidity: number
-  dew_point: number
-  uvi: number
-  clouds: number
-  visibility: number
-  wind_speed: number
-  wind_deg: number
-  wind_gust: number
-  weather: [WeatherCondition]
-}
-
-export interface MinutelyForecast {
-  dt: number
+  time: string
+  interval: number
+  temperature_2m: number
+  relative_humidity_2m: number
+  apparent_temperature: number
+  is_day: 0 | 1
   precipitation: number
+  rain: number
+  showers: number
+  snowfall: number
+  weather_code: WMOCode
+  cloud_cover: number
+  pressure_msl: number
+  surface_pressure: number
+  wind_speed_10m: number
+  wind_direction_10m: number
+  wind_gusts_10m: number
+  visibility?: number
+  uv_index?: number
+  dew_point_2m?: number
 }
 
-export interface HourlyForecast extends Omit<
-  CurrentWeather,
-  "sunrise" | "sunset"
-> {
-  pop: number
-  rain?: {
-    "1h": number
-  }
-  snow?: {
-    "1h": number
-  }
+export interface HourlyForecast {
+  time: string[]
+  temperature_2m: number[]
+  apparent_temperature: number[]
+  precipitation_probability: number[]
+  precipitation: number[]
+  rain: number[]
+  snowfall: number[]
+  weather_code: WMOCode[]
+  wind_speed_10m: number[]
+  wind_direction_10m: number[]
+  is_day: (0 | 1)[]
+  visibility?: number[]
+  uv_index?: number[]
 }
 
 export interface DailyForecast {
-  dt: number
-  sunrise: number
-  sunset: number
-  moonrise: number
-  moonset: number
-  moon_phase: number
-  summary: string
-  temp: {
-    day: number
-    min: number
-    max: number
-    night: number
-    eve: number
-    morn: number
-  }
-  feels_like: {
-    day: number
-    night: number
-    eve: number
-    morn: number
-  }
-  pressure: number
-  humidity: number
-  dew_point: number
-  wind_speed: number
-  wind_deg: number
-  wind_gust: number
-  weather: [WeatherCondition]
+  time: string[]
+  weather_code: WMOCode[]
+  temperature_2m_max: number[]
+  temperature_2m_min: number[]
+  apparent_temperature_max: number[]
+  apparent_temperature_min: number[]
+  sunrise: string[]
+  sunset: string[]
+  precipitation_sum: number[]
+  rain_sum: number[]
+  snowfall_sum: number[]
+  precipitation_probability_max: number[]
+  wind_speed_10m_max: number[]
+  wind_gusts_10m_max: number[]
+  wind_direction_10m_dominant: number[]
+  uv_index_max: number[]
 }
 
-export interface Alert {
-  sender_name: string
-  event: string
-  start: number
-  end: number
-  description: string
-  tags: string[]
-}
-
-export interface OneCallWeatherRes {
-  lat: number
-  lon: number
+export interface OpenMeteoRes {
+  latitude: number
+  longitude: number
+  generationtime_ms: number
+  utc_offset_seconds: number
   timezone: string
-  timezone_offset: number
+  timezone_abbreviation: string
+  elevation: number
+  current_units: Record<string, string>
   current: CurrentWeather
-  minutely: MinutelyForecast[]
-  hourly: HourlyForecast[]
-  daily: DailyForecast[]
-  alerts?: Alert[]
+  hourly_units: Record<string, string>
+  hourly: HourlyForecast
+  daily_units: Record<string, string>
+  daily: DailyForecast
+}
+
+export interface GeocodingResult {
+  id: number
+  name: string
+  latitude: number
+  longitude: number
+  elevation: number
+  state?: string
+  country_code: string
+  country: string
+  admin1?: string
+  admin2?: string
+  timezone: string
+  population?: number
+}
+
+export interface GeocodingRes {
+  results?: GeocodingResult[]
+  generationtime_ms: number
 }
 
 export type WeatherTimezone = {
   timezone: string
   offset: number
-}
-
-export interface Geocoding {
-  name: string
-  lat: number
-  lon: number
-  country: string
-  state?: string
 }

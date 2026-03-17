@@ -1,18 +1,17 @@
-// import type { LngLatLike } from "mapbox-gl"
-
 export const WEATHER_API = {
   DEFAULTS: {
     LAT: 40.2338211,
     LON: -84.4096729,
-    UNIT: "metric",
-    LANG: "en",
+    TEMPERATURE_UNIT: "celsius" as const,
+    WIND_SPEED_UNIT: "ms" as const,
+    TIMEZONE: "auto" as const,
     SEARCH_RESULT_LIMIT: 5,
   },
 } as const
 
 export const MAPBOX = {
   DEFAULTS: {
-    CENTER: [WEATHER_API.DEFAULTS.LON, WEATHER_API.DEFAULTS.LAT] as LngLatLike,
+    CENTER: [WEATHER_API.DEFAULTS.LON, WEATHER_API.DEFAULTS.LAT] as [number, number],
     ZOOM: 12.5,
   },
 } as const
@@ -25,12 +24,13 @@ export const APP = {
   },
   UNIT: {
     TEMP: {
-      metric: "°C",
-      imperial: "°F",
+      celsius: "°C",
+      fahrenheit: "°F",
     },
     WIND: {
-      metric: "m/s",
-      imperial: "mph",
+      ms: "m/s",
+      mph: "mph",
+      kmh: "km/h",
     },
   },
 } as const
