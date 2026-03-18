@@ -3,6 +3,7 @@ export const WEATHER_API = {
     LAT: 40.2338211,
     LON: -84.4096729,
     TEMPERATURE_UNIT: "celsius" as const,
+    TEMPERATURE_UNIT_F: "fahrenheit" as const,
     WIND_SPEED_UNIT: "ms" as const,
     TIMEZONE: "auto" as const,
     SEARCH_RESULT_LIMIT: 5,
@@ -21,6 +22,7 @@ export const APP = {
     LAT: "cloudcast-lat",
     LON: "cloudcast-lon",
     UNIT: "cloudcast-unit",
+    LOCATION: "cloudcast-location",
   },
   UNIT: {
     TEMP: {
