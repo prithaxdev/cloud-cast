@@ -1,6 +1,6 @@
 # Cloud Cast
 
-A production-grade weather dashboard built with React 19, Tailwind CSS 4, and the Open-Meteo API. Features real-time forecasts, interactive charts, a location map, and full light/dark theming — with zero API keys required.
+A production-grade weather dashboard built with React 19, Tailwind CSS 4, and the Open-Meteo API. Features real-time forecasts, interactive charts, a location map, and full light/dark theming - with zero API keys required.
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat&logo=typescript) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.2-06B6D4?style=flat&logo=tailwindcss) ![Vite](https://img.shields.io/badge/Vite-7.3-646CFF?style=flat&logo=vite)
 
@@ -8,16 +8,16 @@ A production-grade weather dashboard built with React 19, Tailwind CSS 4, and th
 
 ## Features
 
-- **Current conditions** — temperature, apparent temperature, humidity, wind speed, UV index, dew point, visibility, cloud cover, pressure
-- **7-day daily forecast** — high/low temps, precipitation probability, weather condition icons
-- **24-hour hourly forecast** — tabular view with all key metrics
-- **48-hour charts** — interactive Recharts graphs for temperature, precipitation, wind, visibility, and cloud cover
-- **Location map** — interactive Leaflet map centered on the selected location
-- **Location search** — debounced geocoding via the Open-Meteo Geocoding API
-- **Geolocation** — one-click browser geolocation with reverse geocoding via Nominatim
-- **Unit toggle** — switch between Celsius/m/s and Fahrenheit/mph
-- **Theme switcher** — light, dark, and system modes; press `D` to toggle
-- **Persistent state** — location, unit, and theme survive page reload via localStorage
+- **Current conditions** - temperature, apparent temperature, humidity, wind speed, UV index, dew point, visibility, cloud cover, pressure
+- **7-day daily forecast** - high/low temps, precipitation probability, weather condition icons
+- **24-hour hourly forecast** - tabular view with all key metrics
+- **48-hour charts** - interactive Recharts graphs for temperature, precipitation, wind, visibility, and cloud cover
+- **Location map** - interactive Leaflet map centered on the selected location
+- **Location search** - debounced geocoding via the Open-Meteo Geocoding API
+- **Geolocation** - one-click browser geolocation with reverse geocoding via Nominatim
+- **Unit toggle** - switch between Celsius/m/s and Fahrenheit/mph
+- **Theme switcher** - light, dark, and system modes; press `D` to toggle
+- **Persistent state** - location, unit, and theme survive page reload via localStorage
 
 ---
 
@@ -107,7 +107,7 @@ pnpm install
 pnpm dev
 ```
 
-The app runs on `http://localhost:5173` with no environment variables required — Open-Meteo is a fully free, no-auth API.
+The app runs on `http://localhost:5173` with no environment variables required - Open-Meteo is a fully free, no-auth API.
 
 ### Build
 
@@ -169,7 +169,3 @@ Press `D` anywhere in the app to cycle the theme. The shortcut is blocked inside
 - **`startTransition`** — Unit changes are wrapped in `startTransition` to defer the expensive re-render of chart series.
 
 ---
-
-## License
-
-MIT
