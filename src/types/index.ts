@@ -66,6 +66,11 @@ export interface HourlyForecast {
   is_day: (0 | 1)[]
   visibility?: number[]
   uv_index?: number[]
+  cloud_cover?: number[]
+  pressure_msl?: number[]
+  dew_point_2m?: number[]
+  relative_humidity_2m?: number[]
+  wind_gusts_10m?: number[]
 }
 
 export interface DailyForecast {
