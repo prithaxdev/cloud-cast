@@ -2,13 +2,17 @@ import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 
 import "./index.css"
+import "leaflet/dist/leaflet.css"
 import App from "./App.tsx"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
+import { WeatherProvider } from "@/components/weather-provider.tsx"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
-      <App />
+      <WeatherProvider>
+        <App />
+      </WeatherProvider>
     </ThemeProvider>
   </StrictMode>
 )
