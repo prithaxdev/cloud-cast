@@ -19,6 +19,13 @@ A production-grade weather dashboard built with React 19, Tailwind CSS 4, and th
 - **Theme switcher** - light, dark, and system modes; press `D` to toggle
 - **Persistent state** - location, unit, and theme survive page reload via localStorage
 
+### Smart features
+
+- **Day Score** - a 0–100 livability score computed from temperature comfort, precipitation probability, wind, UV, and sky conditions; displayed as a color-coded progress bar in the hero card (Excellent → Rough)
+- **Feels-Like Explainer** - the apparent temperature pill now shows *why* it differs from the actual temp: Wind chill, Humidity, Dry air, Solar gain, Cooler out, or Warmer out — unit-aware for both °C and °F
+- **Best Time for Activities** - scans the next 18 hours and surfaces the optimal 2-hour window for Running, Cycling, Outdoor Dining, and Photography; each activity has its own weighted scoring model; hidden automatically on days with no viable windows
+- **Contextual Weather Insights** - up to 3 situation-aware cards shown below the hero, covering 20+ conditions across four priority tiers: critical alerts (thunderstorm, extreme heat/cold, heavy rain, blizzard), noteworthy weather (rain, snow, fog, high wind, muggy, UV), ambient conditions (clear day, frost, stargazing, rain likely later), and time-based moments (golden hour, blue hour, weekend days) — with compound merges like "Sunny Sunday"
+
 ---
 
 ## Tech Stack
@@ -47,7 +54,7 @@ src/
 ├── assets/               # Logo SVG component
 ├── components/
 │   ├── charts/           # Recharts chart wrappers (temperature, precipitation, wind, …)
-│   ├── dashboard/        # Dashboard shell, hero, daily strip, hourly tab, charts tab, map
+│   ├── dashboard/        # Dashboard shell, hero, daily strip, hourly tab, charts tab, map, insights, activity windows
 │   └── ui/               # Headless Base UI components (button, dialog, tabs, dropdown, …)
 ├── config/               # App constants, API defaults, localStorage keys
 ├── hooks/
@@ -77,9 +84,11 @@ ThemeProvider
               └── Dashboard  (lazy)
                     ├── useWeather()      raw API state
                     ├── useChartData()    memoized chart series
-                    ├── HeroSection       current conditions + WMO icon
+                    ├── HeroSection       current conditions + WMO icon + day score + feels-like explainer
+                    ├── WeatherInsights   contextual situation cards (20+ conditions, priority-sorted)
                     ├── LocationMap       Leaflet map  (lazy)
                     ├── DailyStrip        7-day cards
+                    ├── ActivityWindows   best 2-hour activity windows from hourly forecast
                     └── Tabs
                           ├── HourlyTab   24-hour table
                           └── ChartsTab   48-hour Recharts graphs
