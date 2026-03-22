@@ -9,6 +9,7 @@ import { WeatherInsights } from "./weather-insights"
 import { DailyStrip } from "./daily-strip"
 import { HourlyTab } from "./hourly-tab"
 import { ChartsTab } from "./charts-tab"
+import { ActivityWindows } from "./activity-windows"
 
 const LocationMap = React.lazy(() =>
   import("./location-map").then((m) => ({ default: m.LocationMap }))
@@ -38,6 +39,7 @@ const Dashboard = React.memo(function Dashboard() {
         <LocationMap />
       </React.Suspense>
       <DailyStrip daily={daily} />
+      <ActivityWindows />
       <Tabs defaultValue="hourly">
         <TabsList className="w-fit">
           <TabsIndicator />

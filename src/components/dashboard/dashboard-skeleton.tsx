@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton"
 import { WeatherInsightsSkeleton } from "./weather-insights"
+import { ActivityWindowsSkeleton } from "./activity-windows"
 
 export function DashboardSkeleton() {
   return (
@@ -16,6 +17,8 @@ export function DashboardSkeleton() {
           <Skeleton key={i} className="h-28 flex-1 rounded-xl" />
         ))}
       </div>
+      {/* Activity windows */}
+      <ActivityWindowsSkeleton />
       {/* Tab bar + content */}
       <div className="space-y-4">
         <Skeleton className="h-9 w-44 rounded-lg" />
