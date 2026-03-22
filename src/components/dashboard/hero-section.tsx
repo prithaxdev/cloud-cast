@@ -23,6 +23,114 @@ function localTimeToAmPm(isoStr: string): string {
   return `${h12}:${mStr} ${period}`
 }
 
+function feelsLikeReason(
+  temp: number,
+  apparent: number,
+  wind: number,
+  humidity: number,
+  uv: number,
+  isDay: boolean,
+  isCelsius: boolean
+): string {
+  const delta = apparent - temp
+  const windThreshold = isCelsius ? 20 : 12
+  const deltaThreshold = isCelsius ? 3 : 5
+
+  if (Math.abs(delta) < (isCelsius ? 1.5 : 2.5)) return "Feels Like"
+  if (delta <= -deltaThreshold && wind > windThreshold) return "Feels Like · Wind chill"
+  if (delta >= deltaThreshold && humidity > 70) return "Feels Like · Humidity"
+  if (delta <= -deltaThreshold && humidity < 35) return "Feels Like · Dry air"
+  if (isDay && uv > 5 && delta >= deltaThreshold) return "Feels Like · Solar gain"
+  if (delta < 0) return "Feels Like · Cooler out"
+  return "Feels Like · Warmer out"
+}
+
+type ScoreResult = {
+  label: string
+  color: string
+}
+
+function computeDayScore(
+  apparentTemp: number,
+  precipProbMax: number,
+  weatherCode: number,
+  windSpeed: number,
+  uvIndex: number,
+  isDay: 0 | 1,
+  isCelsius: boolean
+): { score: number; result: ScoreResult } {
+  // Temperature comfort (0–30 pts)
+  let tempPts: number
+  if (isCelsius) {
+    if (apparentTemp >= 18 && apparentTemp <= 24) tempPts = 30
+    else if (apparentTemp >= 10 && apparentTemp <= 30) tempPts = 18
+    else if (apparentTemp >= 2 && apparentTemp <= 35) tempPts = 8
+    else tempPts = 0
+  } else {
+    if (apparentTemp >= 64 && apparentTemp <= 75) tempPts = 30
+    else if (apparentTemp >= 50 && apparentTemp <= 86) tempPts = 18
+    else if (apparentTemp >= 35 && apparentTemp <= 95) tempPts = 8
+    else tempPts = 0
+  }
+
+  // Precipitation (0–25 pts)
+  let precipPts: number
+  if (precipProbMax <= 10) precipPts = 25
+  else if (precipProbMax <= 25) precipPts = 20
+  else if (precipProbMax <= 50) precipPts = 12
+  else if (precipProbMax <= 70) precipPts = 5
+  else precipPts = 0
+  if (weatherCode >= 51) precipPts = Math.max(0, precipPts - 10)
+
+  // Wind (0–20 pts)
+  let windPts: number
+  if (isCelsius) {
+    if (windSpeed <= 15) windPts = 20
+    else if (windSpeed <= 30) windPts = 15
+    else if (windSpeed <= 50) windPts = 8
+    else if (windSpeed <= 70) windPts = 3
+    else windPts = 0
+  } else {
+    if (windSpeed <= 9) windPts = 20
+    else if (windSpeed <= 18) windPts = 15
+    else if (windSpeed <= 31) windPts = 8
+    else if (windSpeed <= 43) windPts = 3
+    else windPts = 0
+  }
+
+  // UV (0–15 pts)
+  let uvPts: number
+  if (isDay === 0) {
+    uvPts = 15
+  } else {
+    if (uvIndex <= 3) uvPts = 15
+    else if (uvIndex <= 6) uvPts = 12
+    else if (uvIndex <= 9) uvPts = 6
+    else if (uvIndex <= 11) uvPts = 2
+    else uvPts = 0
+  }
+
+  // Sky (0–10 pts)
+  let skyPts: number
+  if (weatherCode <= 1) skyPts = 10
+  else if (weatherCode === 2) skyPts = 8
+  else if (weatherCode === 3) skyPts = 5
+  else if (weatherCode === 45 || weatherCode === 48) skyPts = 2
+  else skyPts = 0
+
+  const score = tempPts + precipPts + windPts + uvPts + skyPts
+
+  let result: ScoreResult
+  if (score >= 85) result = { label: "Excellent", color: "#22C55E" }
+  else if (score >= 70) result = { label: "Great", color: "#84CC16" }
+  else if (score >= 55) result = { label: "Good", color: "#EAB308" }
+  else if (score >= 40) result = { label: "Fair", color: "#F97316" }
+  else if (score >= 20) result = { label: "Poor", color: "#EF4444" }
+  else result = { label: "Rough", color: "#991B1B" }
+
+  return { score, result }
+}
+
 export const HeroSection = React.memo(function HeroSection() {
   const { weather, location, unit } = useWeather()
 
@@ -38,8 +146,9 @@ export const HeroSection = React.memo(function HeroSection() {
   const { current, daily } = weather
   const wmo = getWMOInfo(current.weather_code, current.is_day)
   const uvLevel = getUVLevel(current.uv_index ?? 0)
-  const tempUnit = unit === "celsius" ? "°C" : "°F"
-  const windUnit = unit === "celsius" ? "km/h" : "mph"
+  const isCelsius = unit === "celsius"
+  const tempUnit = isCelsius ? "°C" : "°F"
+  const windUnit = isCelsius ? "km/h" : "mph"
 
   const locationName = location?.name ?? "Current Location"
   const region = location?.admin1 ?? location?.country ?? ""
@@ -58,6 +167,29 @@ export const HeroSection = React.memo(function HeroSection() {
   // Sunrise/sunset strings are already in local time ("2024-03-17T06:45")
   const sunrise = daily.sunrise?.[0] ? localTimeToAmPm(daily.sunrise[0]) : "—"
   const sunset  = daily.sunset?.[0]  ? localTimeToAmPm(daily.sunset[0])  : "—"
+
+  // Feels-like label (Feature 3)
+  const feelsLikeLabel = feelsLikeReason(
+    current.temperature_2m,
+    current.apparent_temperature,
+    current.wind_speed_10m,
+    current.relative_humidity_2m,
+    current.uv_index ?? 0,
+    current.is_day === 1,
+    isCelsius
+  )
+
+  // Day score (Feature 1)
+  const precipProbMax = daily.precipitation_probability_max[0] ?? 0
+  const { score, result: scoreResult } = computeDayScore(
+    current.apparent_temperature,
+    precipProbMax,
+    current.weather_code,
+    current.wind_speed_10m,
+    current.uv_index ?? 0,
+    current.is_day,
+    isCelsius
+  )
 
   return (
     <div
@@ -136,7 +268,7 @@ export const HeroSection = React.memo(function HeroSection() {
           <StatPill
             icon={TemperatureIcon}
             value={`${Math.round(current.apparent_temperature)}${tempUnit}`}
-            label="Feels Like"
+            label={feelsLikeLabel}
             accentColor="#60A5FA"
           />
           <StatPill
@@ -157,6 +289,22 @@ export const HeroSection = React.memo(function HeroSection() {
             label="UV Index"
             accentColor={uvLevel.color}
           />
+        </div>
+
+        {/* Day Score bar (Feature 1) */}
+        <div className="mt-4 border-t border-border/30 pt-4">
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">Day Score</span>
+            <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full"
+                style={{ width: `${score}%`, backgroundColor: scoreResult.color }}
+              />
+            </div>
+            <span className="text-xs font-semibold tabular-nums" style={{ color: scoreResult.color }}>
+              {score} · {scoreResult.label}
+            </span>
+          </div>
         </div>
       </div>
     </div>
