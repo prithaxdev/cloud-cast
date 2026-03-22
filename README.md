@@ -22,9 +22,9 @@ A production-grade weather dashboard built with React 19, Tailwind CSS 4, and th
 ### Smart features
 
 - **Day Score** - a 0–100 livability score computed from temperature comfort, precipitation probability, wind, UV, and sky conditions; displayed as a color-coded progress bar in the hero card (Excellent → Rough)
-- **Feels-Like Explainer** - the apparent temperature pill now shows *why* it differs from the actual temp: Wind chill, Humidity, Dry air, Solar gain, Cooler out, or Warmer out — unit-aware for both °C and °F
+- **Feels-Like Explainer** - the apparent temperature pill now shows *why* it differs from the actual temp: Wind chill, Humidity, Dry air, Solar gain, Cooler out, or Warmer out - unit-aware for both °C and °F
 - **Best Time for Activities** - scans the next 18 hours and surfaces the optimal 2-hour window for Running, Cycling, Outdoor Dining, and Photography; each activity has its own weighted scoring model; hidden automatically on days with no viable windows
-- **Contextual Weather Insights** - up to 3 situation-aware cards shown below the hero, covering 20+ conditions across four priority tiers: critical alerts (thunderstorm, extreme heat/cold, heavy rain, blizzard), noteworthy weather (rain, snow, fog, high wind, muggy, UV), ambient conditions (clear day, frost, stargazing, rain likely later), and time-based moments (golden hour, blue hour, weekend days) — with compound merges like "Sunny Sunday"
+- **Contextual Weather Insights** - up to 3 situation-aware cards shown below the hero, covering 20+ conditions across four priority tiers: critical alerts (thunderstorm, extreme heat/cold, heavy rain, blizzard), noteworthy weather (rain, snow, fog, high wind, muggy, UV), ambient conditions (clear day, frost, stargazing, rain likely later), and time-based moments (golden hour, blue hour, weekend days) - with compound merges like "Sunny Sunday"
 
 ---
 
