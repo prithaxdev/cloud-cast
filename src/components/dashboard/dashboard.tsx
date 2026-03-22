@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsIndicator, TabsPanel } from "@/compone
 import { Skeleton } from "@/components/ui/skeleton"
 import { DashboardSkeleton } from "./dashboard-skeleton"
 import { HeroSection } from "./hero-section"
+import { WeatherInsights } from "./weather-insights"
 import { DailyStrip } from "./daily-strip"
 import { HourlyTab } from "./hourly-tab"
 import { ChartsTab } from "./charts-tab"
@@ -32,6 +33,7 @@ const Dashboard = React.memo(function Dashboard() {
   return (
     <div className="mx-auto max-w-4xl space-y-4 px-4 pb-12 pt-6">
       <HeroSection />
+      <WeatherInsights />
       <React.Suspense fallback={<Skeleton className="h-[220px] rounded-2xl md:h-[256px]" />}>
         <LocationMap />
       </React.Suspense>
