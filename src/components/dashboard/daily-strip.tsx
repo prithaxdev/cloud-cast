@@ -1,75 +1,83 @@
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { RainDropIcon } from "@hugeicons/core-free-icons"
 import type { DailyPoint } from "@/hooks/use-chart-data"
+import type { WeatherUnit } from "@/components/weather-provider"
 import { getWMOInfo } from "@/lib/wmo"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { tempColor } from "@/lib/temperature"
+import { cn } from "@/lib/utils"
 
-type DayCardProps = { day: DailyPoint; globalMin: number; globalMax: number }
+type DayRowProps = {
+  day: DailyPoint
+  globalMin: number
+  globalMax: number
+  isCelsius: boolean
+  isToday: boolean
+}
 
-const DayCard = React.memo(function DayCard({ day, globalMin, globalMax }: DayCardProps) {
+const DayRow = React.memo(function DayRow({
+  day,
+  globalMin,
+  globalMax,
+  isCelsius,
+  isToday,
+}: DayRowProps) {
   const wmo = getWMOInfo(day.weatherCode, 1)
   const range = globalMax - globalMin || 1
-  const lowPct  = ((day.tempMin - globalMin) / range) * 100
+  const lowPct = ((day.tempMin - globalMin) / range) * 100
   const highPct = ((day.tempMax - globalMin) / range) * 100
 
   return (
-    <div className="group flex min-w-[88px] flex-col items-center gap-2 rounded-xl border border-border/60 bg-card/80 px-3 py-3.5 text-center backdrop-blur-sm transition-colors hover:bg-card">
-      <span className="text-xs font-medium text-muted-foreground">{day.label}</span>
-
-      <div
-        className="flex size-9 items-center justify-center rounded-lg transition-all"
-        style={{ backgroundColor: `${wmo.color}15` }}
-      >
-        <HugeiconsIcon
-          icon={wmo.icon}
-          className="size-5"
-          style={{ color: wmo.color }}
-        />
-      </div>
-
-      {/* Temp high / low */}
-      <div className="flex flex-col items-center gap-0.5">
-        <span className="text-sm font-semibold tabular-nums">{Math.round(day.tempMax)}°</span>
-        <span className="text-xs tabular-nums text-muted-foreground">{Math.round(day.tempMin)}°</span>
-      </div>
-
-      {/* Temp range bar */}
-      <div className="relative h-1 w-10 rounded-full bg-muted">
-        <div
-          className="absolute top-0 h-1 rounded-full"
+    <li className="grid h-11 grid-cols-[3rem_1.5rem_2.5rem_2rem_1fr_2rem] items-center gap-3">
+      <span className={cn("text-sm", isToday ? "font-medium text-foreground" : "text-subtle-foreground")}>
+        {day.label}
+      </span>
+      <HugeiconsIcon icon={wmo.icon} className="size-[18px] text-muted-foreground" aria-label={wmo.label} />
+      <span className="font-mono text-xs text-muted-foreground">
+        {day.precipProbMax > 10 ? `${day.precipProbMax}%` : ""}
+      </span>
+      <span className="text-right text-sm tabular-nums text-muted-foreground">
+        {Math.round(day.tempMin)}°
+      </span>
+      <span className="relative h-1 rounded-full bg-muted">
+        <span
+          className="absolute inset-y-0 rounded-full"
           style={{
             left: `${lowPct}%`,
-            width: `${highPct - lowPct}%`,
-            background: "linear-gradient(90deg, #60A5FA, #F59E0B)",
+            width: `${Math.max(highPct - lowPct, 2)}%`,
+            background: `linear-gradient(90deg, ${tempColor(day.tempMin, isCelsius)}, ${tempColor(day.tempMax, isCelsius)})`,
           }}
         />
-      </div>
-
-      {/* Precip probability */}
-      {day.precipProbMax > 10 && (
-        <div className="flex items-center gap-0.5">
-          <HugeiconsIcon icon={RainDropIcon} className="size-3 text-blue-400" />
-          <span className="text-[10px] tabular-nums text-muted-foreground">{day.precipProbMax}%</span>
-        </div>
-      )}
-    </div>
+      </span>
+      <span className="text-right text-sm font-medium tabular-nums">{Math.round(day.tempMax)}°</span>
+    </li>
   )
 })
 
-type DailyStripProps = { daily: DailyPoint[] }
+type DailyStripProps = { daily: DailyPoint[]; unit: WeatherUnit; className?: string }
 
-export const DailyStrip = React.memo(function DailyStrip({ daily }: DailyStripProps) {
+export const DailyStrip = React.memo(function DailyStrip({ daily, unit, className }: DailyStripProps) {
   const globalMin = Math.min(...daily.map((d) => d.tempMin))
   const globalMax = Math.max(...daily.map((d) => d.tempMax))
+  const isCelsius = unit === "celsius"
 
   return (
-    <ScrollArea orientation="horizontal" className="w-full">
-      <div className="flex gap-2 pb-2">
-        {daily.map((day) => (
-          <DayCard key={day.time} day={day} globalMin={globalMin} globalMax={globalMax} />
+    <section className={cn("rounded-2xl border border-border bg-card p-5", className)}>
+      <header className="flex items-baseline justify-between">
+        <h2 className="text-sm font-medium">7-day forecast</h2>
+        <span className="font-mono text-xs text-muted-foreground">Rain · low · high</span>
+      </header>
+      <ul className="mt-3">
+        {daily.map((day, i) => (
+          <DayRow
+            key={day.time}
+            day={day}
+            globalMin={globalMin}
+            globalMax={globalMax}
+            isCelsius={isCelsius}
+            isToday={i === 0}
+          />
         ))}
-      </div>
-    </ScrollArea>
+      </ul>
+    </section>
   )
 })

@@ -1,39 +1,23 @@
 import * as React from "react"
-import { HugeiconsIcon } from "@hugeicons/react"
-import type { IconSvgElement } from "@hugeicons/react"
 import { ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
 type ChartContainerProps = {
   title: string
-  icon?: IconSvgElement
-  iconColor?: string
-  badge?: React.ReactNode
+  meta?: React.ReactNode
   height?: number
+  className?: string
   children: React.ReactNode
 }
 
-export function ChartContainer({ title, icon, iconColor, badge, height = 220, children }: ChartContainerProps) {
+export function ChartContainer({ title, meta, height = 160, className, children }: ChartContainerProps) {
   return (
-    <Card>
+    <Card className={cn("min-w-0", className)}>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {icon && (
-              <div
-                className="flex size-7 items-center justify-center rounded-lg"
-                style={{ backgroundColor: iconColor ? `${iconColor}18` : undefined }}
-              >
-                <HugeiconsIcon
-                  icon={icon}
-                  className="size-4"
-                  style={{ color: iconColor }}
-                />
-              </div>
-            )}
-            <CardTitle>{title}</CardTitle>
-          </div>
-          {badge}
+        <div className="flex items-baseline justify-between gap-4">
+          <CardTitle>{title}</CardTitle>
+          {meta && <span className="text-xs text-muted-foreground">{meta}</span>}
         </div>
       </CardHeader>
       <CardContent>

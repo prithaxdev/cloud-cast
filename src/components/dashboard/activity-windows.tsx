@@ -10,14 +10,16 @@ import {
 import { useWeather } from "@/hooks/use-weather"
 import { useChartData } from "@/hooks/use-chart-data"
 import type { HourlyPoint } from "@/hooks/use-chart-data"
+import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
+import { NowMark } from "@/components/now-mark"
 
 type ActivityWindow = {
   id: string
   name: string
   icon: IconSvgElement
-  color: string
-  startLabel: string
-  endLabel: string
+  rangeLabel: string
+  hoursAway: number
   score: number
   conditions: string
 }
@@ -26,7 +28,6 @@ type ActivityDef = {
   id: string
   name: string
   icon: IconSvgElement
-  color: string
   minScore: number
   scoreHour: (h: HourlyPoint, isCelsius: boolean) => number
   conditions: (h: HourlyPoint, isCelsius: boolean) => string
@@ -37,7 +38,6 @@ const ACTIVITIES: ActivityDef[] = [
     id: "running",
     name: "Running",
     icon: Running,
-    color: "#F97316",
     minScore: 50,
     scoreHour(h, isCelsius) {
       const hour = parseInt(h.time.substring(11, 13), 10)
@@ -88,7 +88,6 @@ const ACTIVITIES: ActivityDef[] = [
     id: "cycling",
     name: "Cycling",
     icon: Bicycle01Icon,
-    color: "#3B82F6",
     minScore: 50,
     scoreHour(h, isCelsius) {
       const hour = parseInt(h.time.substring(11, 13), 10)
@@ -137,9 +136,8 @@ const ACTIVITIES: ActivityDef[] = [
   },
   {
     id: "outdoor-dining",
-    name: "Outdoor Dining",
+    name: "Outdoor dining",
     icon: ForkIcon,
-    color: "#10B981",
     minScore: 55,
     scoreHour(h, isCelsius) {
       const hour = parseInt(h.time.substring(11, 13), 10)
@@ -190,7 +188,6 @@ const ACTIVITIES: ActivityDef[] = [
     id: "photography",
     name: "Photography",
     icon: Camera01Icon,
-    color: "#A78BFA",
     minScore: 45,
     scoreHour(h, _isCelsius) {
       // Photography requires daylight — night hours are useless
@@ -225,19 +222,15 @@ const ACTIVITIES: ActivityDef[] = [
   },
 ]
 
-function hourLabel(timeStr: string): string {
-  const h = parseInt(timeStr.substring(11, 13), 10)
-  if (h === 0) return "12 AM"
-  if (h === 12) return "12 PM"
-  return h < 12 ? `${h} AM` : `${h - 12} PM`
-}
-
-function nextHourLabel(timeStr: string): string {
-  const h = parseInt(timeStr.substring(11, 13), 10)
-  const next = (h + 2) % 24
-  if (next === 0) return "12 AM"
-  if (next === 12) return "12 PM"
-  return next < 12 ? `${next} AM` : `${next - 12} PM`
+// "8–10 AM" when both ends share a period, "11 AM–1 PM" otherwise
+function windowLabel(timeStr: string): string {
+  const start = parseInt(timeStr.substring(11, 13), 10)
+  const end = (start + 2) % 24
+  const period = (h: number) => (h < 12 ? "AM" : "PM")
+  const h12 = (h: number) => h % 12 || 12
+  return period(start) === period(end)
+    ? `${h12(start)}–${h12(end)} ${period(end)}`
+    : `${h12(start)} ${period(start)}–${h12(end)} ${period(end)}`
 }
 
 function computeWindows(
@@ -269,9 +262,8 @@ function computeWindows(
         id: activity.id,
         name: activity.name,
         icon: activity.icon,
-        color: activity.color,
-        startLabel: hourLabel(bestHour.time),
-        endLabel: nextHourLabel(bestHour.time),
+        rangeLabel: windowLabel(bestHour.time),
+        hoursAway: bestIdx,
         score,
         conditions: activity.conditions(bestHour, isCelsius),
       })
@@ -281,7 +273,11 @@ function computeWindows(
   return windows
 }
 
-export const ActivityWindows = React.memo(function ActivityWindows() {
+export const ActivityWindows = React.memo(function ActivityWindows({
+  className,
+}: {
+  className?: string
+}) {
   const { weather, unit } = useWeather()
   const { hourly24 } = useChartData(weather)
   const isCelsius = unit === "celsius"
@@ -294,68 +290,55 @@ export const ActivityWindows = React.memo(function ActivityWindows() {
   if (windows.length === 0) return null
 
   return (
-    <div className="rounded-2xl border border-border/50 bg-card p-5">
-      <div className="mb-4">
-        <h2 className="text-sm font-semibold text-foreground">
-          Best Time for Activities
-        </h2>
-        <p className="text-xs text-muted-foreground">
-          Based on today's hourly forecast
+    <section className={cn("flex flex-col rounded-2xl border border-border bg-card p-5", className)}>
+      <header>
+        <h2 className="text-sm font-medium">Best times to head out</h2>
+        <p className="mt-1 text-[13px] text-muted-foreground">
+          The best 2-hour window in the next 18 hours
         </p>
-      </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      </header>
+      <ul className="mt-4 grid flex-1 grid-cols-1 sm:auto-rows-fr sm:grid-cols-2">
         {windows.map((w) => (
-          <div
+          <li
             key={w.id}
-            className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/80 p-3"
+            className="flex flex-col gap-2 border-t border-border py-4 sm:even:border-l sm:even:pl-5 sm:odd:pr-5"
           >
             <div className="flex items-center gap-2">
-              <div
-                className="flex size-8 shrink-0 items-center justify-center rounded-lg"
-                style={{ backgroundColor: `${w.color}18` }}
-              >
-                <HugeiconsIcon
-                  icon={w.icon}
-                  className="size-4"
-                  style={{ color: w.color }}
-                />
-              </div>
-              <span className="text-xs font-medium text-foreground">
-                {w.name}
-              </span>
+              <HugeiconsIcon icon={w.icon} className="size-4 shrink-0 text-muted-foreground" />
+              <span className="text-sm text-subtle-foreground">{w.name}</span>
+              {w.hoursAway === 0 ? (
+                <NowMark className="ms-auto" />
+              ) : (
+                <span className="ms-auto font-mono text-xs text-muted-foreground">
+                  in {w.hoursAway} h
+                </span>
+              )}
             </div>
-            <div className="text-sm font-semibold text-foreground">
-              {w.startLabel} - {w.endLabel}
-            </div>
-            <div className="text-[10px] leading-relaxed text-muted-foreground">
-              {w.conditions}
-            </div>
-          </div>
+            <p className="text-xl font-medium tabular-nums">{w.rangeLabel}</p>
+            <p className="text-[13px] text-muted-foreground">{w.conditions}</p>
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+    </section>
   )
 })
 
-export function ActivityWindowsSkeleton() {
+export function ActivityWindowsSkeleton({ className }: { className?: string }) {
   return (
-    <div className="rounded-2xl border border-border/50 bg-card p-5">
-      <div className="mb-4 space-y-1.5">
-        <div className="h-3.5 w-40 animate-pulse rounded-md bg-muted" />
-        <div className="h-3 w-56 animate-pulse rounded-md bg-muted" />
+    <div className={cn("rounded-2xl border border-border bg-card p-5", className)}>
+      <div className="space-y-2">
+        <Skeleton className="h-3.5 w-40" />
+        <Skeleton className="h-3 w-56" />
       </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/80 p-3"
+            className="flex flex-col gap-2 border-t border-border py-4 sm:even:border-l sm:even:pl-5 sm:odd:pr-5"
           >
-            <div className="flex items-center gap-2">
-              <div className="size-8 animate-pulse rounded-lg bg-muted" />
-              <div className="h-3 w-14 animate-pulse rounded-md bg-muted" />
-            </div>
-            <div className="h-3.5 w-20 animate-pulse rounded-md bg-muted" />
-            <div className="h-3 w-full animate-pulse rounded-md bg-muted" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-3 w-full" />
           </div>
         ))}
       </div>

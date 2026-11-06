@@ -11,7 +11,7 @@ import {
 } from "@hugeicons/core-free-icons"
 import { useWeather } from "@/hooks/use-weather"
 import { useTheme } from "@/components/theme-provider"
-import { getWMOInfo } from "@/lib/wmo"
+import { cn } from "@/lib/utils"
 
 // ── Map view definitions ──────────────────────────────────────────────────────
 type MapView = "street" | "satellite" | "terrain"
@@ -60,19 +60,13 @@ const TILE_LAYERS: Record<
   },
 }
 
-// ── Pulsing divIcon ───────────────────────────────────────────────────────────
-function createPulseIcon(color: string) {
-  return L.divIcon({
-    className: "",
-    html: `<div class="ccast-marker" style="--accent-color:${color}">
-      <div class="ccast-ring ccast-ring-a"></div>
-      <div class="ccast-ring ccast-ring-b"></div>
-      <div class="ccast-dot"></div>
-    </div>`,
-    iconSize: [56, 56],
-    iconAnchor: [28, 28],
-  })
-}
+// ── Location pin ──────────────────────────────────────────────────────────────
+const PIN_ICON = L.divIcon({
+  className: "",
+  html: `<div class="ccast-pin"></div>`,
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+})
 
 // ── Inner helpers ─────────────────────────────────────────────────────────────
 function MapCapture({
@@ -100,7 +94,11 @@ function MapFlyTo({ center }: { center: [number, number] }) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export const LocationMap = React.memo(function LocationMap() {
+export const LocationMap = React.memo(function LocationMap({
+  className,
+}: {
+  className?: string
+}) {
   const { lat, lon, weather, geolocate, geolocating } = useWeather()
   const { theme } = useTheme()
   const mapRef = React.useRef<L.Map | null>(null)
@@ -143,11 +141,6 @@ export const LocationMap = React.memo(function LocationMap() {
   const tileUrl = isDark ? layer.dark : layer.light
   const labelsUrl = layer.labels && (isDark ? layer.labels.dark : layer.labels.light)
 
-  const wmoColor = weather
-    ? getWMOInfo(weather.current.weather_code, weather.current.is_day).color
-    : "#60A5FA"
-
-  const icon = React.useMemo(() => createPulseIcon(wmoColor), [wmoColor])
   const center: [number, number] = [lat, lon]
 
   const elevation = weather?.elevation
@@ -159,7 +152,10 @@ export const LocationMap = React.memo(function LocationMap() {
   return (
     <div
       ref={containerRef}
-      className="group relative h-[220px] overflow-hidden rounded-2xl border border-border/50 bg-card md:h-[256px] [&:fullscreen]:h-screen [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
+      className={cn(
+        "group relative isolate overflow-hidden rounded-2xl border border-border bg-card [&:fullscreen]:h-screen [&:fullscreen]:rounded-none [&:fullscreen]:border-0",
+        className
+      )}
     >
       {/* ── Map ── */}
       <MapContainer
@@ -172,111 +168,76 @@ export const LocationMap = React.memo(function LocationMap() {
       >
         <TileLayer key={tileUrl} url={tileUrl} attribution={layer.attribution} />
         {labelsUrl && <TileLayer key={labelsUrl} url={labelsUrl} />}
-        <Marker position={center} icon={icon} />
+        <Marker position={center} icon={PIN_ICON} />
         <MapCapture mapRef={mapRef} />
         <MapFlyTo center={center} />
       </MapContainer>
 
-      {/* ── Edge fades ── */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-card/60 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card via-card/70 to-transparent" />
+      {/* ── Bottom scrim, a tone shift within the card color ── */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[650] h-24 bg-gradient-to-t from-card via-card/80 to-transparent" />
 
-      {/* ── Bottom info bar ── */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 px-4 pb-3">
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-center gap-1.5">
-            <span className="font-mono text-[11px] tabular-nums text-foreground/60">
-              {latStr}
-            </span>
-            <span className="text-[10px] text-border">·</span>
-            <span className="font-mono text-[11px] tabular-nums text-foreground/60">
-              {lonStr}
-            </span>
-          </div>
-          {timezone && (
-            <span className="font-mono text-[10px] text-muted-foreground/50">
-              {timezone}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2 pb-0.5">
-          {elevation !== undefined && (
-            <span className="font-mono text-[11px] text-foreground/50">
-              ▲ {Math.round(elevation)}m
-            </span>
-          )}
-          {tzAbbr && (
-            <span className="rounded-md border border-border/40 bg-background/50 px-1.5 py-0.5 font-mono text-[10px] text-foreground/60 backdrop-blur-sm">
-              {tzAbbr}
-            </span>
-          )}
-        </div>
+      {/* ── Bottom readout ── */}
+      <div className="pointer-events-none absolute bottom-0 left-0 z-[651] max-w-[85%] px-4 pb-6 font-mono text-xs">
+        <p className="tabular-nums text-foreground">
+          {latStr}&ensp;{lonStr}
+        </p>
+        <p className="mt-0.5 truncate text-muted-foreground">
+          {[
+            elevation !== undefined ? `${Math.round(elevation)} m` : null,
+            timezone,
+            tzAbbr,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
       </div>
 
       {/* ── View switcher (top-left) ── */}
-      <div className="absolute left-3 top-3 z-[400] flex overflow-hidden rounded-xl border border-border/50 bg-background/80 shadow-sm backdrop-blur-sm">
-        {(["street", "satellite", "terrain"] as MapView[]).map((view, i, arr) => (
-          <React.Fragment key={view}>
-            <button
-              onClick={() => setMapView(view)}
-              title={TILE_LAYERS[view].label}
-              className={`px-3 py-1.5 text-[11px] font-medium transition-colors ${
-                mapView === view
-                  ? "bg-foreground/10 text-foreground"
-                  : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-              }`}
-            >
-              {TILE_LAYERS[view].label}
-            </button>
-            {i < arr.length - 1 && (
-              <div className="my-1.5 w-px bg-border/50" />
+      <div className="absolute top-2 left-2 z-[1000] flex rounded-lg border border-border bg-card p-0.5 shadow-[0_1px_2px_rgb(0_0_0/0.08)]">
+        {(["street", "satellite", "terrain"] as MapView[]).map((view) => (
+          <button
+            key={view}
+            onClick={() => setMapView(view)}
+            aria-pressed={mapView === view}
+            className={cn(
+              "h-7 rounded-md px-2.5 text-xs font-medium transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+              mapView === view
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground"
             )}
-          </React.Fragment>
+          >
+            {TILE_LAYERS[view].label}
+          </button>
         ))}
       </div>
 
       {/* ── Top-right controls ── */}
-      <div className="absolute right-3 top-3 z-[400] flex flex-col gap-1.5">
-        {/* Zoom */}
-        <div className="flex flex-col overflow-hidden rounded-xl border border-border/50 bg-background/80 shadow-sm backdrop-blur-sm">
-          <button
-            onClick={() => mapRef.current?.zoomIn()}
-            className="flex size-8 items-center justify-center text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
-          >
-            <HugeiconsIcon icon={Add01Icon} className="size-3.5" />
+      <div className="absolute top-2 right-2 z-[1000] flex flex-col gap-2">
+        <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.08)]">
+          <button onClick={() => mapRef.current?.zoomIn()} aria-label="Zoom in" className="flex size-8 items-center justify-center text-muted-foreground transition-colors duration-150 ease-out hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+            <HugeiconsIcon icon={Add01Icon} className="size-4" />
           </button>
-          <div className="mx-1.5 h-px bg-border/50" />
-          <button
-            onClick={() => mapRef.current?.zoomOut()}
-            className="flex size-8 items-center justify-center text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
-          >
-            <HugeiconsIcon icon={MinusSignIcon} className="size-3.5" />
+          <div className="h-px bg-border" />
+          <button onClick={() => mapRef.current?.zoomOut()} aria-label="Zoom out" className="flex size-8 items-center justify-center text-muted-foreground transition-colors duration-150 ease-out hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+            <HugeiconsIcon icon={MinusSignIcon} className="size-4" />
           </button>
         </div>
-
-        {/* Geolocate */}
         <button
           onClick={geolocate}
           disabled={geolocating}
           title="Use my location"
-          className="flex size-8 items-center justify-center rounded-xl border border-border/50 bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-muted/50 hover:text-foreground disabled:opacity-50"
+          aria-label="Use my location"
+          className="flex size-8 items-center justify-center text-muted-foreground transition-colors duration-150 ease-out hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none rounded-lg border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.08)] disabled:opacity-50"
         >
-          <HugeiconsIcon
-            icon={Navigation03Icon}
-            className={`size-3.5 ${geolocating ? "animate-pulse text-primary" : ""}`}
-          />
+          <HugeiconsIcon icon={Navigation03Icon} className="size-4" />
         </button>
-
-        {/* Fullscreen */}
         <button
           onClick={toggleFullscreen}
-          title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-          className="flex size-8 items-center justify-center rounded-xl border border-border/50 bg-background/80 text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-muted/50 hover:text-foreground"
+          title={isFullscreen ? "Exit full screen" : "Full screen"}
+          aria-label={isFullscreen ? "Exit full screen" : "Full screen"}
+          className="flex size-8 items-center justify-center text-muted-foreground transition-colors duration-150 ease-out hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none rounded-lg border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.08)]"
         >
-          <HugeiconsIcon
-            icon={isFullscreen ? MinimizeIcon : FullScreenIcon}
-            className="size-3.5"
-          />
+          <HugeiconsIcon icon={isFullscreen ? MinimizeIcon : FullScreenIcon} className="size-4" />
         </button>
       </div>
     </div>

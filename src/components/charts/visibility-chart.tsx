@@ -1,36 +1,37 @@
 import * as React from "react"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
-import { EyeIcon } from "@hugeicons/core-free-icons"
 import type { HourlyPoint } from "@/hooks/use-chart-data"
 import type { WeatherUnit } from "@/components/weather-provider"
 import { ChartContainer } from "./chart-container"
+import { AXIS_TICK } from "./axis"
 import { CustomTooltip } from "./custom-tooltip"
 
 type Props = { data: HourlyPoint[]; unit: WeatherUnit }
 
 export default React.memo(function VisibilityChart({ data }: Props) {
   return (
-    <ChartContainer title="Visibility" icon={EyeIcon} iconColor="var(--color-chart-3)">
-      <AreaChart data={data}>
+    <ChartContainer title="Visibility" meta="km">
+      <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
         <defs>
-          <linearGradient id="visGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--color-chart-3)" stopOpacity={0.25} />
-            <stop offset="95%" stopColor="var(--color-chart-3)" stopOpacity={0} />
+          <linearGradient id="visFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.16} />
+            <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="2 6" stroke="var(--border)" vertical={false} />
-        <XAxis dataKey="label" tick={{ fontSize: 11 }} interval="preserveStartEnd" axisLine={false} tickLine={false} />
-        <YAxis unit=" km" tick={{ fontSize: 11 }} domain={["auto", "auto"]} width={45} axisLine={false} tickLine={false} />
-        <Tooltip content={CustomTooltip} />
+        <CartesianGrid stroke="var(--border)" vertical={false} />
+        <XAxis dataKey="label" tick={AXIS_TICK} interval="preserveStartEnd" minTickGap={32} axisLine={false} tickLine={false} tickMargin={8} />
+        <YAxis tick={AXIS_TICK} domain={[0, "auto"]} width={32} axisLine={false} tickLine={false} />
+        <Tooltip content={CustomTooltip} cursor={{ stroke: "var(--border)" }} />
         <Area
           type="monotone"
           dataKey="visibility"
-          name="Visibility (km)"
-          stroke="var(--color-chart-3)"
-          fill="url(#visGrad)"
+          name="Visibility"
+          unit=" km"
+          stroke="var(--color-chart-1)"
+          fill="url(#visFill)"
           strokeWidth={2}
           dot={false}
-          activeDot={{ r: 4, strokeWidth: 0 }}
+          activeDot={{ r: 3, strokeWidth: 0, fill: "var(--color-chart-1)" }}
         />
       </AreaChart>
     </ChartContainer>

@@ -22,6 +22,8 @@ import {
 import { useWeather } from "@/hooks/use-weather"
 import type { WeatherUnit } from "@/components/weather-provider"
 import type { OpenMeteoRes } from "@/types"
+import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,7 +35,6 @@ type Insight = {
   headline: string
   subtext: string
   icon: IconSvgElement
-  color: string
 }
 
 // ─── Time helpers ─────────────────────────────────────────────────────────────
@@ -118,9 +119,8 @@ function computeInsights(
       priority: 1,
       headline: "Thunderstorm with hail",
       subtext:
-        "Stay indoors - hail and lightning are dangerous. Bring in anything outside.",
+        "Stay indoors. Hail and lightning are dangerous, so bring in anything left outside.",
       icon: CloudAngledZapIcon,
-      color: "#6D28D9",
     })
   } else if (code === 95) {
     add({
@@ -128,9 +128,8 @@ function computeInsights(
       priority: 1,
       headline: "Thunderstorm warning",
       subtext:
-        "Lightning nearby. Seek shelter and avoid open spaces or tall trees.",
+        "Lightning nearby. Find shelter and stay away from open ground and tall trees.",
       icon: CloudAngledZapIcon,
-      color: "#7C3AED",
     })
   }
 
@@ -138,11 +137,9 @@ function computeInsights(
     add({
       id: "heavy-rain",
       priority: 1,
-      headline: "Heavy rain falling",
-      subtext:
-        "Roads may flood and visibility drops - drive carefully and stay dry.",
+      headline: "Heavy rain",
+      subtext: "Roads may flood and visibility drops. Drive slowly.",
       icon: CloudBigRainIcon,
-      color: "#1D4ED8",
     })
   }
 
@@ -151,9 +148,8 @@ function computeInsights(
       id: "heavy-snow",
       priority: 1,
       headline: "Heavy snowfall",
-      subtext: "Blizzard-level snow possible - avoid travel if you can.",
+      subtext: "Near-blizzard snow is possible. Avoid travel if you can.",
       icon: SunCloudSnowIcon,
-      color: "#94A3B8",
     })
   }
 
@@ -163,9 +159,8 @@ function computeInsights(
       priority: 1,
       headline: "Dangerous heat",
       subtext:
-        "Extreme temperature - stay indoors, hydrate constantly, and avoid the sun.",
+        "Stay indoors where you can, drink water often and keep out of the sun.",
       icon: Sun01Icon,
-      color: "#EF4444",
     })
   }
 
@@ -175,9 +170,8 @@ function computeInsights(
       priority: 1,
       headline: "Dangerous cold",
       subtext:
-        "Frostbite risk within minutes - limit time outdoors and cover all exposed skin.",
+        "Frostbite can set in within minutes. Cover exposed skin and limit time outside.",
       icon: TemperatureIcon,
-      color: "#93C5FD",
     })
   }
 
@@ -186,9 +180,8 @@ function computeInsights(
       id: "extreme-wind",
       priority: 1,
       headline: "Extreme wind gusts",
-      subtext: `Gusts reaching ${Math.round(gusts)} ${isCelsius ? "km/h" : "mph"} - structural damage possible. Stay indoors.`,
+      subtext: `Gusts up to ${Math.round(gusts)} ${isCelsius ? "km/h" : "mph"} can damage structures. Stay indoors.`,
       icon: FastWindIcon,
-      color: "#BE185D",
     })
   }
 
@@ -207,12 +200,11 @@ function computeInsights(
       add({
         id: "rain",
         priority: 2,
-        headline: isLight ? "Light rain falling" : "Moderate rain",
+        headline: isLight ? "Light rain" : "Moderate rain",
         subtext: isLight
-          ? "A drizzle is in the air - a compact umbrella is all you need."
-          : "Grab your umbrella before heading out. Puddles likely.",
+          ? "A drizzle. A compact umbrella is enough."
+          : "Take an umbrella. Expect puddles.",
         icon: isLight ? SunCloudMidRainIcon : CloudMidRainIcon,
-        color: "#3B82F6",
       })
     }
 
@@ -222,10 +214,8 @@ function computeInsights(
         id: "snow",
         priority: 2,
         headline: code <= 71 ? "Light snowfall" : "Moderate snow",
-        subtext:
-          "Slippery surfaces expected - drive carefully and watch your step.",
+        subtext: "Surfaces will be slippery. Drive carefully and watch your step.",
         icon: SunCloudLittleSnowIcon,
-        color: "#CBD5E1",
       })
     }
 
@@ -237,10 +227,9 @@ function computeInsights(
         headline: "Low visibility",
         subtext:
           vis !== undefined && vis < 200
-            ? "Dense fog - visibility under 200 m. Use fog lights and slow down significantly."
-            : "Foggy conditions - use low beams and increase following distance.",
+            ? "Dense fog, visibility under 200 m. Use fog lights and slow down."
+            : "Foggy. Use low beams and leave more following distance.",
         icon: CloudSlowWindIcon,
-        color: "#94A3B8",
       })
     }
 
@@ -250,9 +239,8 @@ function computeInsights(
         id: "wind",
         priority: 2,
         headline: "Strong wind gusts",
-        subtext: `Gusts of ${Math.round(gusts)} ${isCelsius ? "km/h" : "mph"} - secure loose items outdoors and brace when walking.`,
+        subtext: `Gusts of ${Math.round(gusts)} ${isCelsius ? "km/h" : "mph"}. Secure loose items outside.`,
         icon: FastWindIcon,
-        color: "#A78BFA",
       })
     }
 
@@ -263,9 +251,8 @@ function computeInsights(
         id: "muggy",
         priority: 2,
         headline: "Hot and humid",
-        subtext: `It feels oppressive outside - ${humidity}% humidity makes ${Math.round(temp)}° feel much worse. Stay cool.`,
+        subtext: `${humidity}% humidity makes ${Math.round(temp)}° feel heavier. Stay in the shade.`,
         icon: HumidityIcon,
-        color: "#34D399",
       })
     }
 
@@ -274,10 +261,9 @@ function computeInsights(
       add({
         id: "uv",
         priority: 2,
-        headline: uvMax >= 11 ? "Extreme UV radiation" : "Very high UV index",
-        subtext: `UV index peaks at ${uvMax} today - SPF 50+, sunglasses, and a hat are essential.`,
+        headline: uvMax >= 11 ? "Extreme UV" : "Very high UV",
+        subtext: `UV index peaks at ${Math.round(uvMax)} today. Wear SPF 50+, sunglasses and a hat.`,
         icon: Sun01Icon,
-        color: "#F97316",
       })
     }
   }
@@ -295,17 +281,16 @@ function computeInsights(
   if (isSunnyDay) {
     const uvTip =
       uv >= 7
-        ? " UV is high - don't skip the sunscreen."
+        ? " UV is high, so wear sunscreen."
         : uv >= 4
-          ? " Mild UV - light sunscreen is a good idea."
-          : " Enjoy the fresh air!"
+          ? " UV is moderate, light sunscreen helps."
+          : " UV stays low."
     add({
       id: "sunny",
       priority: 3,
       headline: "Clear skies all day",
-      subtext: `Perfect conditions to be outdoors.${uvTip}`,
+      subtext: `Good conditions to be outside.${uvTip}`,
       icon: Sun01Icon,
-      color: "#F59E0B",
     })
   }
 
@@ -322,9 +307,8 @@ function computeInsights(
       id: "rain-later",
       priority: 3,
       headline: "Rain expected later",
-      subtext: `${precipProbMax}% chance of rain today - it's dry now but keep an umbrella handy.`,
+      subtext: `${precipProbMax}% chance of rain today. Dry for now, so keep an umbrella close.`,
       icon: SunCloudMidRainIcon,
-      color: "#60A5FA",
     })
   }
 
@@ -334,10 +318,8 @@ function computeInsights(
       id: "overcast",
       priority: 3,
       headline: "Grey skies today",
-      subtext:
-        "Fully overcast with no sunshine - a natural excuse for an indoor day.",
+      subtext: "Fully overcast, with no sun breaking through.",
       icon: CloudIcon,
-      color: "#64748B",
     })
   }
 
@@ -349,11 +331,9 @@ function computeInsights(
     add({
       id: "frost",
       priority: 3,
-      headline: "Near-freezing conditions",
-      subtext:
-        "Black ice possible on roads and pavements - allow extra time and tread carefully.",
+      headline: "Near freezing",
+      subtext: "Black ice is possible on roads and paths. Allow extra time.",
       icon: SunCloudLittleSnowIcon,
-      color: "#7DD3FC",
     })
   }
 
@@ -365,11 +345,9 @@ function computeInsights(
     add({
       id: "hot-day",
       priority: 3,
-      headline: "Scorching day",
-      subtext:
-        "It's very hot outside - stay hydrated and take breaks in the shade.",
+      headline: "Very hot day",
+      subtext: "Drink water and take breaks in the shade.",
       icon: Sun01Icon,
-      color: "#F59E0B",
     })
   }
 
@@ -378,11 +356,9 @@ function computeInsights(
     add({
       id: "stargazing",
       priority: 3,
-      headline: "Clear night skies",
-      subtext:
-        "Excellent visibility tonight - step outside to stargaze or enjoy the moonlight.",
+      headline: "Clear night",
+      subtext: "Good visibility for stargazing tonight.",
       icon: Moon01Icon,
-      color: "#818CF8",
     })
   }
 
@@ -403,10 +379,8 @@ function computeInsights(
       id: "golden-hour-am",
       priority: 4,
       headline: "Golden hour",
-      subtext:
-        "The soft morning light is gorgeous - perfect for photography or a peaceful walk.",
+      subtext: "Soft, low light for the next 45 minutes. Good for photos or a walk.",
       icon: SunriseIcon,
-      color: "#FBBF24",
     })
   }
 
@@ -420,11 +394,9 @@ function computeInsights(
     add({
       id: "blue-hour-am",
       priority: 4,
-      headline: "Blue hour - dawn",
-      subtext:
-        "The sky glows deep blue before sunrise. A magical time to be outside.",
+      headline: "Blue hour",
+      subtext: "The sky turns deep blue in the half hour before sunrise.",
       icon: SunriseIcon,
-      color: "#6366F1",
     })
   }
 
@@ -439,10 +411,8 @@ function computeInsights(
       id: "golden-hour-pm",
       priority: 4,
       headline: "Sunset approaching",
-      subtext:
-        "Warm golden light for the next 45 minutes - ideal time to head outside.",
+      subtext: "Warm, low light until sunset. A good time to head out.",
       icon: SunsetIcon,
-      color: "#F97316",
     })
   }
 
@@ -456,11 +426,9 @@ function computeInsights(
     add({
       id: "blue-hour-pm",
       priority: 4,
-      headline: "Blue hour - dusk",
-      subtext:
-        "The sky is painted deep blue after sunset. City lights begin to glow.",
+      headline: "Blue hour",
+      subtext: "The sky stays deep blue for about half an hour after sunset.",
       icon: SunsetIcon,
-      color: "#7C3AED",
     })
   }
 
@@ -470,19 +438,17 @@ function computeInsights(
     add({
       id: "sunday",
       priority: 4,
-      headline: "Sunday - your day",
-      subtext: "No rush, no plans required. A slow morning is perfectly valid.",
+      headline: "Sunday",
+      subtext: "A free day. The activity windows below show the best hours outside.",
       icon: SunCloud01Icon,
-      color: "#8B5CF6",
     })
   } else if (dow === 6) {
     add({
       id: "saturday",
       priority: 4,
-      headline: "Saturday is here",
-      subtext: "Weekend energy - make it count however feels right to you.",
+      headline: "Saturday",
+      subtext: "A free day. The activity windows below show the best hours outside.",
       icon: Sun01Icon,
-      color: "#10B981",
     })
   }
 
@@ -504,9 +470,8 @@ function computeInsights(
       id: "sunny-weekend",
       priority: 3,
       headline: isSunday ? "Sunny Sunday" : "Sunny Saturday",
-      subtext: "Clear skies on a free day - the perfect excuse to get outside.",
+      subtext: "Clear skies on a free day, a good one to spend outside.",
       icon: Sun01Icon,
-      color: "#F59E0B",
     })
   }
 
@@ -524,17 +489,13 @@ function computeInsights(
 
 export function WeatherInsightsSkeleton({ count = 2 }: { count?: number }) {
   return (
-    <div className="space-y-2">
+    <div className="divide-y divide-border rounded-2xl border border-border bg-card">
       {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          className="flex items-start gap-4 rounded-2xl border border-border/50 bg-card px-5 py-4"
-          style={{ borderLeftWidth: "3px", borderLeftColor: "var(--border)" }}
-        >
-          <div className="mt-0.5 size-9 shrink-0 animate-pulse rounded-xl bg-muted" />
-          <div className="flex-1 space-y-2 pt-0.5">
-            <div className="h-3.5 w-1/3 animate-pulse rounded-md bg-muted" />
-            <div className="h-3 w-2/3 animate-pulse rounded-md bg-muted" />
+        <div key={i} className="flex items-start gap-3 px-5 py-4">
+          <Skeleton className="size-[18px] shrink-0 rounded-sm" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-3.5 w-1/3" />
+            <Skeleton className="h-3 w-2/3" />
           </div>
         </div>
       ))}
@@ -561,39 +522,29 @@ export const WeatherInsights = React.memo(function WeatherInsights() {
   if (insights.length === 0) return null
 
   return (
-    <div className="space-y-2">
-      {insights.map((insight) => (
-        <div
-          key={insight.id}
-          className="flex items-start gap-4 rounded-2xl border border-border/50 bg-card px-5 py-4"
-          style={{
-            borderLeftColor: insight.color,
-            borderLeftWidth: "3px",
-          }}
-        >
-          {/* Icon */}
-          <div
-            className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl"
-            style={{ backgroundColor: `${insight.color}18` }}
-          >
+    <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
+      {insights.map((insight) => {
+        const isWarning = insight.priority === 1
+        return (
+          <li key={insight.id} className="flex items-start gap-3 px-5 py-4">
             <HugeiconsIcon
               icon={insight.icon}
-              className="size-5"
-              style={{ color: insight.color }}
+              className={cn(
+                "mt-px size-[18px] shrink-0",
+                isWarning ? "text-destructive" : "text-muted-foreground"
+              )}
             />
-          </div>
-
-          {/* Text */}
-          <div className="min-w-0">
-            <p className="text-sm leading-snug font-semibold text-foreground">
-              {insight.headline}
-            </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-              {insight.subtext}
-            </p>
-          </div>
-        </div>
-      ))}
-    </div>
+            <div className="min-w-0">
+              <p className="text-sm leading-5 font-medium text-foreground">
+                {insight.headline}
+              </p>
+              <p className="mt-1 text-[13px] leading-5 text-subtle-foreground">
+                {insight.subtext}
+              </p>
+            </div>
+          </li>
+        )
+      })}
+    </ul>
   )
 })

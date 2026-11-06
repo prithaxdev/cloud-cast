@@ -1,26 +1,22 @@
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  Location01Icon,
-  SunriseIcon,
-  SunsetIcon,
-  HumidityIcon,
-  FastWindIcon,
-  Sun01Icon,
-  TemperatureIcon,
-} from "@hugeicons/core-free-icons"
+import { Location01Icon } from "@hugeicons/core-free-icons"
 import { useWeather } from "@/hooks/use-weather"
 import { getWMOInfo, getUVLevel, windDirection } from "@/lib/wmo"
-import { StatPill } from "./stat-pill"
+import { cn } from "@/lib/utils"
+import { SunDial } from "./sun-dial"
 
-// Parse "YYYY-MM-DDTHH:MM" (already in location's local time) → "6:45 AM"
-function localTimeToAmPm(isoStr: string): string {
-  const timePart = isoStr.substring(11, 16) // "HH:MM"
-  const [hStr, mStr] = timePart.split(":")
-  const h = parseInt(hStr, 10)
-  const period = h >= 12 ? "PM" : "AM"
-  const h12 = h % 12 || 12
-  return `${h12}:${mStr} ${period}`
+// Current local time in the given timezone → minutes since midnight
+function localMinutes(now: Date, tz: string): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz,
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+  }).formatToParts(now)
+  const h = parseInt(parts.find((p) => p.type === "hour")?.value ?? "0")
+  const m = parseInt(parts.find((p) => p.type === "minute")?.value ?? "0")
+  return (h % 24) * 60 + m
 }
 
 function feelsLikeReason(
@@ -36,19 +32,15 @@ function feelsLikeReason(
   const windThreshold = isCelsius ? 20 : 12
   const deltaThreshold = isCelsius ? 3 : 5
 
-  if (Math.abs(delta) < (isCelsius ? 1.5 : 2.5)) return "Feels Like"
-  if (delta <= -deltaThreshold && wind > windThreshold) return "Feels Like · Wind chill"
-  if (delta >= deltaThreshold && humidity > 70) return "Feels Like · Humidity"
-  if (delta <= -deltaThreshold && humidity < 35) return "Feels Like · Dry air"
-  if (isDay && uv > 5 && delta >= deltaThreshold) return "Feels Like · Solar gain"
-  if (delta < 0) return "Feels Like · Cooler out"
-  return "Feels Like · Warmer out"
+  if (Math.abs(delta) < (isCelsius ? 1.5 : 2.5)) return "Close to actual"
+  if (delta <= -deltaThreshold && wind > windThreshold) return "Wind chill"
+  if (delta >= deltaThreshold && humidity > 70) return "Humidity"
+  if (delta <= -deltaThreshold && humidity < 35) return "Dry air"
+  if (isDay && uv > 5 && delta >= deltaThreshold) return "Solar gain"
+  if (delta < 0) return "Cooler than actual"
+  return "Warmer than actual"
 }
 
-type ScoreResult = {
-  label: string
-  color: string
-}
 
 function computeDayScore(
   apparentTemp: number,
@@ -58,7 +50,7 @@ function computeDayScore(
   uvIndex: number,
   isDay: 0 | 1,
   isCelsius: boolean
-): { score: number; result: ScoreResult } {
+): { score: number; label: string } {
   // Temperature comfort (0–30 pts)
   let tempPts: number
   if (isCelsius) {
@@ -120,18 +112,36 @@ function computeDayScore(
 
   const score = tempPts + precipPts + windPts + uvPts + skyPts
 
-  let result: ScoreResult
-  if (score >= 85) result = { label: "Excellent", color: "#22C55E" }
-  else if (score >= 70) result = { label: "Great", color: "#84CC16" }
-  else if (score >= 55) result = { label: "Good", color: "#EAB308" }
-  else if (score >= 40) result = { label: "Fair", color: "#F97316" }
-  else if (score >= 20) result = { label: "Poor", color: "#EF4444" }
-  else result = { label: "Rough", color: "#991B1B" }
+  let label: string
+  if (score >= 85) label = "Excellent"
+  else if (score >= 70) label = "Great"
+  else if (score >= 55) label = "Good"
+  else if (score >= 40) label = "Fair"
+  else if (score >= 20) label = "Poor"
+  else label = "Rough"
 
-  return { score, result }
+  return { score, label }
 }
 
-export const HeroSection = React.memo(function HeroSection() {
+type ReadoutProps = { label: string; value: string; detail?: string }
+
+function Readout({ label, value, detail }: ReadoutProps) {
+  return (
+    <div className="min-w-0 sm:border-l sm:border-border sm:pl-5 sm:first:border-l-0 sm:first:pl-0">
+      <dt className="text-[13px] text-muted-foreground">{label}</dt>
+      <dd className="mt-1 text-xl font-medium tabular-nums">{value}</dd>
+      {detail && (
+        <dd className="mt-0.5 truncate text-xs text-muted-foreground">{detail}</dd>
+      )}
+    </div>
+  )
+}
+
+export const HeroSection = React.memo(function HeroSection({
+  className,
+}: {
+  className?: string
+}) {
   const { weather, location, unit } = useWeather()
 
   // Live clock — updates every minute
@@ -145,30 +155,24 @@ export const HeroSection = React.memo(function HeroSection() {
 
   const { current, daily } = weather
   const wmo = getWMOInfo(current.weather_code, current.is_day)
-  const uvLevel = getUVLevel(current.uv_index ?? 0)
+  const uvIndex = Math.round(current.uv_index ?? 0)
   const isCelsius = unit === "celsius"
-  const tempUnit = isCelsius ? "°C" : "°F"
   const windUnit = isCelsius ? "km/h" : "mph"
 
-  const locationName = location?.name ?? "Current Location"
+  const locationName = location?.name ?? "Current location"
   const region = location?.admin1 ?? location?.country ?? ""
 
   // Format current time in the location's timezone
   const localTimeStr = new Intl.DateTimeFormat("en-US", {
     timeZone: weather.timezone,
-    weekday: "long",
-    month: "long",
+    weekday: "short",
+    month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
   }).format(now)
 
-  // Sunrise/sunset strings are already in local time ("2024-03-17T06:45")
-  const sunrise = daily.sunrise?.[0] ? localTimeToAmPm(daily.sunrise[0]) : "—"
-  const sunset  = daily.sunset?.[0]  ? localTimeToAmPm(daily.sunset[0])  : "—"
-
-  // Feels-like label (Feature 3)
   const feelsLikeLabel = feelsLikeReason(
     current.temperature_2m,
     current.apparent_temperature,
@@ -179,9 +183,8 @@ export const HeroSection = React.memo(function HeroSection() {
     isCelsius
   )
 
-  // Day score (Feature 1)
   const precipProbMax = daily.precipitation_probability_max[0] ?? 0
-  const { score, result: scoreResult } = computeDayScore(
+  const { score, label: scoreLabel } = computeDayScore(
     current.apparent_temperature,
     precipProbMax,
     current.weather_code,
@@ -191,122 +194,104 @@ export const HeroSection = React.memo(function HeroSection() {
     isCelsius
   )
 
+  const dewPoint = current.dew_point_2m
+
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl border border-border/50 bg-card"
+    <section
+      className={cn(
+        "flex flex-col rounded-2xl border border-border bg-card p-6",
+        className
+      )}
     >
-      {/* Subtle condition color glow */}
-      <div
-        className="pointer-events-none absolute -top-24 -right-24 size-64 rounded-full opacity-10 blur-3xl"
-        style={{ backgroundColor: wmo.color }}
-      />
-
-      <div className="relative p-6">
-        {/* Location + date row */}
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-1.5">
-              <HugeiconsIcon icon={Location01Icon} className="size-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{region}</span>
-            </div>
-            <h1 className="mt-0.5 text-2xl font-semibold tracking-tight text-foreground">
-              {locationName}
-            </h1>
-            <p className="mt-1 text-xs text-muted-foreground/70">
-              {localTimeStr}
+      <header className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          {region && (
+            <p className="flex items-center gap-2 text-sm text-subtle-foreground">
+              <HugeiconsIcon icon={Location01Icon} className="size-4 shrink-0 text-muted-foreground" />
+              <span className="truncate">{region}</span>
             </p>
-          </div>
-
-          {/* Sunrise / Sunset */}
-          <div className="shrink-0 space-y-1.5 text-right">
-            <div className="flex items-center justify-end gap-1.5 text-xs text-muted-foreground">
-              <span>{sunrise}</span>
-              <HugeiconsIcon icon={SunriseIcon} className="size-3.5" style={{ color: "#F59E0B" }} />
-            </div>
-            <div className="flex items-center justify-end gap-1.5 text-xs text-muted-foreground">
-              <span>{sunset}</span>
-              <HugeiconsIcon icon={SunsetIcon} className="size-3.5" style={{ color: "#F97316" }} />
-            </div>
-          </div>
+          )}
+          <h1 className="mt-1 truncate text-[28px] leading-tight font-medium">
+            {locationName}
+          </h1>
+          <p className="mt-1 font-mono text-xs text-muted-foreground">{localTimeStr}</p>
         </div>
-
-        {/* Temperature + icon */}
-        <div className="mb-6 flex items-end justify-between">
-          <div className="flex items-start gap-4">
-            <div
-              className="flex size-20 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: `${wmo.color}20`, boxShadow: `0 0 40px ${wmo.color}15` }}
-            >
-              <HugeiconsIcon
-                icon={wmo.icon}
-                className="size-11"
-                style={{ color: wmo.color }}
-              />
-            </div>
-            <div>
-              <div className="text-[5rem] font-extralight leading-none tracking-tighter tabular-nums text-foreground">
-                {Math.round(current.temperature_2m)}
-                <span className="text-4xl text-muted-foreground">{tempUnit}</span>
-              </div>
-              <p className="mt-1 text-sm font-medium text-muted-foreground">{wmo.label}</p>
-            </div>
-          </div>
-
-          {/* High / Low */}
-          <div className="hidden text-right sm:block">
-            <div className="text-xs text-muted-foreground">Today</div>
-            <div className="mt-0.5 text-sm font-medium">
-              <span className="text-foreground">{Math.round(daily.temperature_2m_max[0])}°</span>
-              <span className="mx-1 text-border">/</span>
-              <span className="text-muted-foreground">{Math.round(daily.temperature_2m_min[0])}°</span>
-            </div>
-          </div>
+        <div className="shrink-0 text-right">
+          <p className="text-[13px] text-muted-foreground">Today</p>
+          <p className="mt-1 text-sm tabular-nums">
+            <span className="text-muted-foreground">H</span>{" "}
+            <span className="font-medium">{Math.round(daily.temperature_2m_max[0])}°</span>
+            <span className="ms-3 text-muted-foreground">L</span>{" "}
+            <span className="font-medium">{Math.round(daily.temperature_2m_min[0])}°</span>
+          </p>
         </div>
+      </header>
 
-        {/* Stat pills */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <StatPill
-            icon={TemperatureIcon}
-            value={`${Math.round(current.apparent_temperature)}${tempUnit}`}
-            label={feelsLikeLabel}
-            accentColor="#60A5FA"
-          />
-          <StatPill
-            icon={HumidityIcon}
-            value={`${current.relative_humidity_2m}%`}
-            label="Humidity"
-            accentColor="#34D399"
-          />
-          <StatPill
-            icon={FastWindIcon}
-            value={`${Math.round(current.wind_speed_10m)} ${windUnit}`}
-            label={`Wind · ${windDirection(current.wind_direction_10m)}`}
-            accentColor="#A78BFA"
-          />
-          <StatPill
-            icon={Sun01Icon}
-            value={`${current.uv_index?.toFixed(1) ?? "—"} · ${uvLevel.label}`}
-            label="UV Index"
-            accentColor={uvLevel.color}
-          />
-        </div>
-
-        {/* Day Score bar (Feature 1) */}
-        <div className="mt-4 border-t border-border/30 pt-4">
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">Day Score</span>
-            <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-              <div
-                className="absolute inset-y-0 left-0 rounded-full"
-                style={{ width: `${score}%`, backgroundColor: scoreResult.color }}
-              />
-            </div>
-            <span className="text-xs font-semibold tabular-nums" style={{ color: scoreResult.color }}>
-              {score} · {scoreResult.label}
+      <div className="mt-8 grid flex-1 items-center gap-8 md:grid-cols-[1fr_minmax(0,22rem)]">
+        <div>
+          <p className="flex items-start leading-none">
+            <span className="text-8xl font-normal tracking-[-0.04em] tabular-nums">
+              {Math.round(current.temperature_2m)}
             </span>
-          </div>
+            <span className="mt-2 ms-1 text-3xl text-muted-foreground">
+              {isCelsius ? "°C" : "°F"}
+            </span>
+          </p>
+          <p className="mt-4 flex items-center gap-2 text-base text-subtle-foreground">
+            <HugeiconsIcon icon={wmo.icon} className="size-[18px] text-muted-foreground" />
+            {wmo.label}
+          </p>
         </div>
+
+        {daily.sunrise?.[0] && daily.sunset?.[0] && (
+          <SunDial
+            sunrise={daily.sunrise[0]}
+            sunset={daily.sunset[0]}
+            nowMinutes={localMinutes(now, weather.timezone)}
+            latitude={weather.latitude}
+          />
+        )}
       </div>
-    </div>
+
+      <dl className="mt-8 grid grid-cols-2 gap-x-5 gap-y-5 border-t border-border pt-5 sm:grid-cols-4">
+        <Readout
+          label="Feels like"
+          value={`${Math.round(current.apparent_temperature)}°`}
+          detail={feelsLikeLabel}
+        />
+        <Readout
+          label="Humidity"
+          value={`${current.relative_humidity_2m}%`}
+          detail={dewPoint !== undefined ? `Dew point ${Math.round(dewPoint)}°` : undefined}
+        />
+        <Readout
+          label="Wind"
+          value={`${Math.round(current.wind_speed_10m)} ${windUnit}`}
+          detail={`${windDirection(current.wind_direction_10m)}, gusts ${Math.round(current.wind_gusts_10m)}`}
+        />
+        <Readout label="UV index" value={String(uvIndex)} detail={getUVLevel(uvIndex)} />
+      </dl>
+
+      <div className="mt-5 flex items-center gap-4 border-t border-border pt-4">
+        <span className="text-[13px] text-muted-foreground">Day score</span>
+        <div
+          className="relative h-1 flex-1 overflow-hidden rounded-full bg-muted"
+          role="meter"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={score}
+          aria-label="Day score"
+        >
+          <div
+            className="absolute inset-y-0 left-0 rounded-full bg-foreground/70"
+            style={{ width: `${score}%` }}
+          />
+        </div>
+        <span className="text-sm tabular-nums">
+          <span className="font-medium">{score}</span>
+          <span className="ms-2 text-subtle-foreground">{scoreLabel}</span>
+        </span>
+      </div>
+    </section>
   )
 })

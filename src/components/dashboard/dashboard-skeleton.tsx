@@ -4,30 +4,17 @@ import { ActivityWindowsSkeleton } from "./activity-windows"
 
 export function DashboardSkeleton() {
   return (
-    <div className="mx-auto max-w-4xl space-y-4 px-4 pb-12 pt-6">
-      {/* Hero */}
-      <Skeleton className="h-52 w-full rounded-2xl" />
-      {/* Insights */}
-      <WeatherInsightsSkeleton count={2} />
-      {/* Map */}
-      <Skeleton className="h-[220px] w-full rounded-2xl md:h-[256px]" />
-      {/* Daily strip */}
-      <div className="flex gap-2">
-        {Array.from({ length: 7 }).map((_, i) => (
-          <Skeleton key={i} className="h-28 flex-1 rounded-xl" />
-        ))}
+    <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 pt-6 pb-16 sm:px-6 lg:grid-cols-12 lg:px-8">
+      <Skeleton className="h-[480px] rounded-2xl lg:col-span-8" />
+      <div className="flex flex-col gap-4 lg:col-span-4">
+        <WeatherInsightsSkeleton count={2} />
+        <Skeleton className="h-60 rounded-2xl lg:h-auto lg:flex-1" />
       </div>
-      {/* Activity windows */}
-      <ActivityWindowsSkeleton />
-      {/* Tab bar + content */}
-      <div className="space-y-4">
-        <Skeleton className="h-9 w-44 rounded-lg" />
-        <div className="flex gap-1.5">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 w-16 rounded-xl" />
-          ))}
-        </div>
-        <Skeleton className="h-64 w-full rounded-xl" />
+      <Skeleton className="h-96 rounded-2xl lg:col-span-5" />
+      <ActivityWindowsSkeleton className="lg:col-span-7" />
+      <div className="mt-4 space-y-4 lg:col-span-12">
+        <Skeleton className="h-10 w-44 rounded-lg" />
+        <Skeleton className="h-[480px] w-full rounded-2xl" />
       </div>
     </div>
   )

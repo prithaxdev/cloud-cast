@@ -11,17 +11,18 @@ const PressureChart = React.lazy(() => import("@/components/charts/pressure-char
 const UVIndexChart = React.lazy(() => import("@/components/charts/uv-index-chart"))
 const VisibilityChart = React.lazy(() => import("@/components/charts/visibility-chart"))
 
-function ChartSkeleton() {
-  return <Skeleton className="h-[268px] w-full" />
+function ChartSkeleton({ className = "h-60" }: { className?: string }) {
+  return <Skeleton className={`w-full rounded-2xl ${className}`} />
 }
 
 type ChartsTabProps = { data: HourlyPoint[]; unit: WeatherUnit }
 
+// Precipitation leads at full width; the other six sit smaller beneath it.
 export const ChartsTab = React.memo(function ChartsTab({ data, unit }: ChartsTabProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <React.Suspense fallback={<ChartSkeleton />}>
-        <PrecipitationChart data={data} unit={unit} />
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <React.Suspense fallback={<ChartSkeleton className="h-96 sm:col-span-2 lg:col-span-3" />}>
+        <PrecipitationChart data={data} unit={unit} className="sm:col-span-2 lg:col-span-3" />
       </React.Suspense>
       <React.Suspense fallback={<ChartSkeleton />}>
         <WindChart data={data} unit={unit} />

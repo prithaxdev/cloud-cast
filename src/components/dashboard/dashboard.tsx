@@ -25,31 +25,33 @@ const Dashboard = React.memo(function Dashboard() {
 
   if (!weather) {
     return (
-      <div className="mx-auto max-w-4xl px-4 pt-12 text-center text-muted-foreground">
-        No weather data available.
+      <div className="mx-auto max-w-7xl px-4 pt-12 text-center text-sm text-muted-foreground sm:px-6 lg:px-8">
+        No weather data available
       </div>
     )
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4 px-4 pb-12 pt-6">
-      <HeroSection />
-      <WeatherInsights />
-      <React.Suspense fallback={<Skeleton className="h-[220px] rounded-2xl md:h-[256px]" />}>
-        <LocationMap />
-      </React.Suspense>
-      <DailyStrip daily={daily} />
-      <ActivityWindows />
-      <Tabs defaultValue="hourly">
+    <div className="mx-auto grid w-full max-w-7xl animate-in grid-cols-1 gap-4 px-4 pt-6 pb-16 duration-500 ease-out fade-in slide-in-from-bottom-2 motion-reduce:animate-none sm:px-6 lg:grid-cols-12 lg:px-8">
+      <HeroSection className="lg:col-span-8" />
+      <div className="flex flex-col gap-4 lg:col-span-4">
+        <WeatherInsights />
+        <React.Suspense fallback={<Skeleton className="h-60 rounded-2xl lg:flex-1" />}>
+          <LocationMap className="h-60 lg:h-auto lg:min-h-60 lg:flex-1" />
+        </React.Suspense>
+      </div>
+      <DailyStrip daily={daily} unit={unit} className="lg:col-span-5" />
+      <ActivityWindows className="lg:col-span-7" />
+      <Tabs defaultValue="hourly" className="mt-4 gap-4 lg:col-span-12">
         <TabsList className="w-fit">
           <TabsIndicator />
           <TabsTrigger value="hourly">Hourly</TabsTrigger>
           <TabsTrigger value="charts">Charts</TabsTrigger>
         </TabsList>
-        <TabsPanel value="hourly" className="pt-4">
+        <TabsPanel value="hourly">
           <HourlyTab data={hourly24} unit={unit} />
         </TabsPanel>
-        <TabsPanel value="charts" className="pt-4">
+        <TabsPanel value="charts">
           <ChartsTab data={hourly48} unit={unit} />
         </TabsPanel>
       </Tabs>

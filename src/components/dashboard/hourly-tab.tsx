@@ -1,87 +1,54 @@
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { RainDropIcon } from "@hugeicons/core-free-icons"
 import type { HourlyPoint } from "@/hooks/use-chart-data"
 import type { WeatherUnit } from "@/components/weather-provider"
 import { getWMOInfo } from "@/lib/wmo"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
+import { NowMark } from "@/components/now-mark"
 
 const TemperatureChart = React.lazy(() => import("@/components/charts/temperature-chart"))
 
-type HourCardProps = {
-  point: HourlyPoint
-  isCurrent: boolean
-  cardRef?: React.Ref<HTMLDivElement>
-}
+type HourColumnProps = { point: HourlyPoint; isCurrent: boolean }
 
-const HourCard = React.memo(function HourCard({ point, isCurrent, cardRef }: HourCardProps) {
+const HourColumn = React.memo(function HourColumn({ point, isCurrent }: HourColumnProps) {
   const wmo = getWMOInfo(point.weatherCode, point.isDay)
   return (
-    <div
-      ref={cardRef}
-      className={`flex min-w-[68px] flex-col items-center gap-1.5 rounded-xl border px-2.5 py-3 text-center transition-all ${
-        isCurrent
-          ? "border-primary/30 bg-primary/10 shadow-sm shadow-primary/10 ring-1 ring-primary/20"
-          : "border-border/60 bg-card/80 hover:bg-card"
-      }`}
-    >
-      <span className={`text-[10px] font-medium uppercase tracking-wide ${isCurrent ? "text-primary" : "text-muted-foreground"}`}>
-        {isCurrent ? "Now" : point.label}
-      </span>
-
-      <div
-        className="flex size-8 items-center justify-center rounded-lg"
-        style={{ backgroundColor: `${wmo.color}15` }}
-      >
-        <HugeiconsIcon
-          icon={wmo.icon}
-          className="size-4.5"
-          style={{ color: wmo.color }}
-        />
-      </div>
-
-      <span className="text-sm font-semibold tabular-nums">{Math.round(point.temp)}°</span>
-
-      {point.precipProb > 20 ? (
-        <div className="flex items-center gap-0.5">
-          <HugeiconsIcon icon={RainDropIcon} className="size-2.5 text-blue-400" />
-          <span className="text-[10px] tabular-nums text-blue-400">{point.precipProb}%</span>
-        </div>
+    <li className="flex min-w-12 flex-1 flex-col items-center gap-2 py-1 text-center">
+      {isCurrent ? (
+        <NowMark />
       ) : (
-        <div className="h-3.5" />
+        <span className="font-mono text-xs leading-4 text-muted-foreground">{point.label}</span>
       )}
-    </div>
+      <HugeiconsIcon icon={wmo.icon} className="size-[18px] text-muted-foreground" aria-label={wmo.label} />
+      <span className="text-sm font-medium tabular-nums">{Math.round(point.temp)}°</span>
+      <span className="h-4 font-mono text-xs text-muted-foreground">
+        {point.precipProb > 20 ? `${point.precipProb}%` : ""}
+      </span>
+    </li>
   )
 })
 
 type HourlyTabProps = { data: HourlyPoint[]; unit: WeatherUnit }
 
 export const HourlyTab = React.memo(function HourlyTab({ data, unit }: HourlyTabProps) {
-  const currentRef = React.useRef<HTMLDivElement>(null)
-
-  React.useEffect(() => {
-    currentRef.current?.scrollIntoView({ inline: "center", behavior: "smooth", block: "nearest" })
-  }, [])
-
   return (
-    <div className="space-y-4">
+    <section className="rounded-2xl border border-border bg-card">
+      <div className="px-5 pt-5">
+        <h2 className="text-sm font-medium">Next 24 hours</h2>
+      </div>
       <ScrollArea orientation="horizontal" className="w-full">
-        <div className="flex gap-1.5 pb-2">
+        <ul className="flex px-3 pt-4 pb-2">
           {data.map((point, i) => (
-            <HourCard
-              key={point.time}
-              point={point}
-              isCurrent={i === 0}
-              cardRef={i === 0 ? currentRef : undefined}
-            />
+            <HourColumn key={point.time} point={point} isCurrent={i === 0} />
           ))}
-        </div>
+        </ul>
       </ScrollArea>
-
-      <React.Suspense fallback={<Skeleton className="h-[268px] w-full rounded-xl" />}>
-        <TemperatureChart data={data} unit={unit} />
-      </React.Suspense>
-    </div>
+      <div className="border-t border-border p-5">
+        <React.Suspense fallback={<Skeleton className="h-80 w-full rounded-xl" />}>
+          <TemperatureChart data={data} unit={unit} />
+        </React.Suspense>
+      </div>
+    </section>
   )
 })
