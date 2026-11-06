@@ -16,17 +16,29 @@ import { getWMOInfo } from "@/lib/wmo"
 // ── Map view definitions ──────────────────────────────────────────────────────
 type MapView = "street" | "satellite" | "terrain"
 
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services"
+
 const TILE_LAYERS: Record<
   MapView,
-  { light: string; dark: string; label: string; attribution: string }
+  {
+    light: string
+    dark: string
+    labels?: { light: string; dark: string }
+    label: string
+    attribution: string
+  }
 > = {
   street: {
-    light:
-      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    // ESRI Canvas (gray base + label overlay) — free, no API key.
+    // CARTO basemaps now return an "API KEY REQUIRED" tile without a key.
+    light: `${ESRI}/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}`,
+    dark: `${ESRI}/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}`,
+    labels: {
+      light: `${ESRI}/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}`,
+      dark: `${ESRI}/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`,
+    },
     label: "Map",
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    attribution: "&copy; Esri, HERE, Garmin, OSM",
   },
   satellite: {
     // ESRI World Imagery — free, no API key
@@ -129,6 +141,7 @@ export const LocationMap = React.memo(function LocationMap() {
 
   const layer = TILE_LAYERS[mapView]
   const tileUrl = isDark ? layer.dark : layer.light
+  const labelsUrl = layer.labels && (isDark ? layer.labels.dark : layer.labels.light)
 
   const wmoColor = weather
     ? getWMOInfo(weather.current.weather_code, weather.current.is_day).color
@@ -158,6 +171,7 @@ export const LocationMap = React.memo(function LocationMap() {
         className="h-full w-full"
       >
         <TileLayer key={tileUrl} url={tileUrl} attribution={layer.attribution} />
+        {labelsUrl && <TileLayer key={labelsUrl} url={labelsUrl} />}
         <Marker position={center} icon={icon} />
         <MapCapture mapRef={mapRef} />
         <MapFlyTo center={center} />
