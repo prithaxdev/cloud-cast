@@ -18,26 +18,31 @@ export const UnitDropdown = () => {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="secondary" size="icon" aria-label="Toggle unit" />
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Temperature unit"
+            className="font-mono text-[13px]"
+          />
         }
       >
         {unit === WEATHER_API.DEFAULTS.TEMPERATURE_UNIT ? "°C" : "°F"}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-50">
         <DropdownMenuLabel className="text-muted-foreground">
-          Weather Settings
+          Units
         </DropdownMenuLabel>
         <DropdownMenuRadioGroup
           value={unit}
           onValueChange={(value) => setUnit(value as WeatherUnit)}
         >
           <DropdownMenuRadioItem value={WEATHER_API.DEFAULTS.TEMPERATURE_UNIT}>
-            °C - Celsius
+            Celsius, km/h
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem
             value={WEATHER_API.DEFAULTS.TEMPERATURE_UNIT_F}
           >
-            °F - Fahrenheit
+            Fahrenheit, mph
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>

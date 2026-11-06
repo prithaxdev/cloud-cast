@@ -6,7 +6,7 @@ const Dashboard = lazy(() => import("@/components/dashboard/dashboard"))
 
 export function App() {
   return (
-    <main>
+    <main className="min-h-svh">
       <TopBar />
       <Suspense fallback={<DashboardSkeleton />}>
         <Dashboard />

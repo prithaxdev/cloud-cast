@@ -47,16 +47,14 @@ export const SearchDialog = () => {
         render={
           <Button
             variant="ghost"
-            className="me-auto max-lg:size-9 lg:bg-secondary dark:lg:bg-secondary/50"
+            aria-label="Search places"
+            className="max-lg:size-8 lg:h-8 lg:w-64 lg:justify-start lg:gap-2 lg:border-border lg:bg-secondary lg:px-3 lg:font-normal lg:text-muted-foreground lg:hover:text-foreground"
           />
         }
       >
-        <HugeiconsIcon
-          icon={SearchIcon}
-          className="lg:text-muted-foreground"
-        />
-        <div className="flex w-62.5 justify-between max-lg:hidden">
-          Search weather...
+        <HugeiconsIcon icon={SearchIcon} />
+        <div className="flex flex-1 items-center justify-between max-lg:hidden">
+          Search
           <KbdGroup>
             <Kbd>⌘</Kbd>
             <Kbd>K</Kbd>
@@ -65,14 +63,14 @@ export const SearchDialog = () => {
       </DialogTrigger>
       <DialogContent className="gap-0 bg-card p-0" showCloseButton={false}>
         <DialogHeader className="sr-only">
-          <DialogTitle>Search weather</DialogTitle>
+          <DialogTitle>Search places</DialogTitle>
           <DialogDescription>
-            Search weather by city or country
+            Find a forecast by city or country
           </DialogDescription>
         </DialogHeader>
         <InputGroup className="rounded-b-none border-x-0! border-t-0! border-b border-border! bg-transparent! ring-0!">
           <InputGroupInput
-            placeholder="Search weather..."
+            placeholder="City or country"
             value={search}
             onInput={(e) => setSearch(e.currentTarget.value)}
           />
@@ -82,7 +80,9 @@ export const SearchDialog = () => {
         </InputGroup>
         <ItemGroup className="min-h-80 p-2">
           {!loading && !results.length && (
-            <p className="py-4 text-center text-sm">No results found</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              {search ? "No places found" : "Type a city or country"}
+            </p>
           )}
           {results.map((result) => (
             <Item

@@ -12,14 +12,15 @@ function GeolocateButton() {
   return (
     <Button
       variant="ghost"
-      size="icon-sm"
+      size="icon"
       title="Use my location"
+      aria-label="Use my location"
       disabled={geolocating}
       onClick={geolocate}
     >
       <HugeiconsIcon
         icon={geolocating ? Loading03Icon : Gps01Icon}
-        className={geolocating ? "animate-spin text-primary" : ""}
+        className={geolocating ? "animate-spin" : ""}
       />
     </Button>
   )
@@ -27,18 +28,18 @@ function GeolocateButton() {
 
 export const TopBar = () => {
   return (
-    <div className="h-19 lg:h-22">
-      <header className="fixed top-3 right-3 left-3 z-1003 flex h-16 items-center justify-between gap-4 rounded-2xl border border-border/50 bg-card/80 px-4 backdrop-blur-xl lg:top-4 lg:right-auto lg:left-1/2 lg:w-full lg:max-w-4xl lg:-translate-x-1/2">
-        <Logo />
+    <header className="sticky top-0 z-1003 border-b border-border bg-background">
+      <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+        <Logo size={24} />
 
         <SearchDialog />
 
-        <div className="flex shrink-0 items-center gap-0.5">
+        <div className="ms-auto flex shrink-0 items-center gap-1">
           <GeolocateButton />
           <ThemeDropdown />
           <UnitDropdown />
         </div>
-      </header>
-    </div>
+      </div>
+    </header>
   )
 }

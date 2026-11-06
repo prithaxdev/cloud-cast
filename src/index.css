@@ -2,80 +2,99 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/figtree";
+@import "@fontsource-variable/geist-mono";
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Graphite ramp with a faint cool tint (open sky), one accent: the brand
+ * orange, used for the sun, the "Now" mark and the map pin only.
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.153 0.006 107.1);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.153 0.006 107.1);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.153 0.006 107.1);
-  --primary: oklch(0.228 0.013 107.4);
-  --primary-foreground: oklch(0.988 0.003 106.5);
-  --secondary: oklch(0.966 0.005 106.5);
-  --secondary-foreground: oklch(0.228 0.013 107.4);
-  --muted: oklch(0.966 0.005 106.5);
-  --muted-foreground: oklch(0.58 0.031 107.3);
-  --accent: oklch(0.966 0.005 106.5);
-  --accent-foreground: oklch(0.228 0.013 107.4);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.93 0.007 106.5);
-  --input: oklch(0.93 0.007 106.5);
-  --ring: oklch(0.737 0.021 106.9);
-  --chart-1: oklch(0.65 0.15 220);
-  --chart-2: oklch(0.62 0.18 240);
-  --chart-3: oklch(0.55 0.14 195);
-  --chart-4: oklch(0.60 0.16 145);
-  --chart-5: oklch(0.70 0.14 55);
+  --background: #f6f7f9;
+  --foreground: #14161a;
+  --card: #ffffff;
+  --card-foreground: #14161a;
+  --popover: #ffffff;
+  --popover-foreground: #14161a;
+  --primary: #14161a;
+  --primary-foreground: #ffffff;
+  --secondary: #eef0f3;
+  --secondary-foreground: #14161a;
+  --muted: #eef0f3;
+  --muted-foreground: #6b7080;
+  --subtle-foreground: #4f5462;
+  --accent: #eef0f3;
+  --accent-foreground: #14161a;
+  --destructive: #dc2626;
+  --positive: #16a34a;
+  --border: rgb(20 22 26 / 8%);
+  --input: rgb(20 22 26 / 12%);
+  --ring: rgb(20 22 26 / 24%);
+  --brand: #ff6900;
+  --brand-ink: #b84f00;
+  --chart-1: #3d7fc4;
+  --chart-2: #6b7080;
+  --chart-3: #9aa0ad;
+  --chart-4: #c9cdd5;
+  --chart-5: #ff6900;
   --radius: 0.625rem;
-  --sidebar: oklch(0.988 0.003 106.5);
-  --sidebar-foreground: oklch(0.153 0.006 107.1);
-  --sidebar-primary: oklch(0.228 0.013 107.4);
-  --sidebar-primary-foreground: oklch(0.988 0.003 106.5);
-  --sidebar-accent: oklch(0.966 0.005 106.5);
-  --sidebar-accent-foreground: oklch(0.228 0.013 107.4);
-  --sidebar-border: oklch(0.93 0.007 106.5);
-  --sidebar-ring: oklch(0.737 0.021 106.9);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #14161a;
+  --sidebar-primary: #14161a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eef0f3;
+  --sidebar-accent-foreground: #14161a;
+  --sidebar-border: rgb(20 22 26 / 8%);
+  --sidebar-ring: rgb(20 22 26 / 24%);
 }
 
 .dark {
-  --background: oklch(0.153 0.006 107.1);
-  --foreground: oklch(0.988 0.003 106.5);
-  --card: oklch(0.228 0.013 107.4);
-  --card-foreground: oklch(0.988 0.003 106.5);
-  --popover: oklch(0.228 0.013 107.4);
-  --popover-foreground: oklch(0.988 0.003 106.5);
-  --primary: oklch(0.93 0.007 106.5);
-  --primary-foreground: oklch(0.228 0.013 107.4);
-  --secondary: oklch(0.286 0.016 107.4);
-  --secondary-foreground: oklch(0.988 0.003 106.5);
-  --muted: oklch(0.286 0.016 107.4);
-  --muted-foreground: oklch(0.737 0.021 106.9);
-  --accent: oklch(0.286 0.016 107.4);
-  --accent-foreground: oklch(0.988 0.003 106.5);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.58 0.031 107.3);
-  --chart-1: oklch(0.71 0.15 220);
-  --chart-2: oklch(0.68 0.18 240);
-  --chart-3: oklch(0.61 0.14 195);
-  --chart-4: oklch(0.66 0.16 145);
-  --chart-5: oklch(0.76 0.14 55);
-  --sidebar: oklch(0.228 0.013 107.4);
-  --sidebar-foreground: oklch(0.988 0.003 106.5);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.988 0.003 106.5);
-  --sidebar-accent: oklch(0.286 0.016 107.4);
-  --sidebar-accent-foreground: oklch(0.988 0.003 106.5);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.58 0.031 107.3);
+  --background: #131416;
+  --foreground: #ededf0;
+  --card: #18191c;
+  --card-foreground: #ededf0;
+  --popover: #1d1e22;
+  --popover-foreground: #ededf0;
+  --primary: #ededf0;
+  --primary-foreground: #131416;
+  --secondary: #222327;
+  --secondary-foreground: #ededf0;
+  --muted: #222327;
+  --muted-foreground: #81858f;
+  --subtle-foreground: #a4a7b0;
+  --accent: #222327;
+  --accent-foreground: #ededf0;
+  --destructive: #e5484d;
+  --positive: #4cc38a;
+  --border: rgb(237 237 240 / 8%);
+  --input: rgb(237 237 240 / 12%);
+  --ring: rgb(237 237 240 / 28%);
+  --brand: #ff6900;
+  --brand-ink: #ff7a1f;
+  --chart-1: #6aa5e0;
+  --chart-2: #81858f;
+  --chart-3: #5d616b;
+  --chart-4: #3a3c42;
+  --chart-5: #ff6900;
+  --sidebar: #18191c;
+  --sidebar-foreground: #ededf0;
+  --sidebar-primary: #ededf0;
+  --sidebar-primary-foreground: #131416;
+  --sidebar-accent: #222327;
+  --sidebar-accent-foreground: #ededf0;
+  --sidebar-border: rgb(237 237 240 / 8%);
+  --sidebar-ring: rgb(237 237 240 / 28%);
 }
 
 @theme inline {
   --font-sans: "Figtree Variable", sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-positive: var(--positive);
+  --color-subtle-foreground: var(--subtle-foreground);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -107,13 +126,13 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 24px;
 }
 
 @layer base {
@@ -121,7 +140,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
   html {
     @apply font-sans;
