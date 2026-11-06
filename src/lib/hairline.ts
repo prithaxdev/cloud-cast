@@ -6,13 +6,14 @@ import sundialSource from "../../design/hairline/sundial.js?raw"
 
 export type Sun = { lat: number; rise: number; set: number; now: number }
 
-type Handle = { set(value: number): void; destroy(): void }
+type Handle = { set(value: number): void; sun(next: Omit<Sun, "lat">): void; destroy(): void }
+export type SundialHandle = { update(next: Omit<Sun, "lat">): void; destroy(): void }
 type Figure = {
   name: string
   means: string
   range: [number, number, number]
   mount(
-    ctx: { stage: HTMLElement; svg: SVGSVGElement; read: { textContent: string }; sun?: Sun },
+    ctx: { stage: HTMLElement; svg: SVGSVGElement; read: { textContent: string | null }; sun?: Sun },
     value: number
   ): Handle
 }
@@ -35,15 +36,35 @@ function load() {
   return loaded
 }
 
-/** Mounts the sundial into `stage` at rest on `sun`; returns its tear-down. */
-export function mountSundial(stage: HTMLElement, sun: Sun): () => void {
+/**
+ * Mounts the sundial into `stage` at rest on `sun`. `onRead` gets the figure's
+ * read-out: "rest", or the hour under the pointer, like "14:00" or "05:00 · dark".
+ */
+export function mountSundial(
+  stage: HTMLElement,
+  sun: Sun,
+  onRead: (text: string) => void
+): SundialHandle {
   const { HL, sundial } = load()
   HL.inject(document)
   stage.setAttribute("data-hairline", sundial.name)
   const svg = HL.mk("svg", { viewBox: "0 0 400 320", "aria-hidden": "true" }, stage)
-  const handle = sundial.mount({ stage, svg, read: { textContent: "" }, sun }, sundial.range[1])
-  return () => {
-    handle.destroy()
-    svg.remove()
+  let text = ""
+  const read = {
+    get textContent() {
+      return text
+    },
+    set textContent(value: string | null) {
+      text = value ?? ""
+      onRead(text)
+    },
+  }
+  const handle = sundial.mount({ stage, svg, read, sun }, sundial.range[1])
+  return {
+    update: (next) => handle.sun(next),
+    destroy: () => {
+      handle.destroy()
+      svg.remove()
+    },
   }
 }

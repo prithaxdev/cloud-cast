@@ -8,7 +8,9 @@
  * detent: how hard the shadow clicks onto whole hours.
  *
  * `sun` is optional: { lat, rise, set, now } in degrees and decimal hours.
- * The host passes the forecast's; the bench gets a November afternoon.
+ * The host passes the forecast's; the bench gets a November afternoon. The
+ * handle's `sun({ rise, set, now })` moves the day on without a remount, so a
+ * hand on the dial is not lost when the clock ticks.
  */
 const {
   Cam, circ, clamp, facing, fillet, fit, hull, lerp, open, poly, prism, proj, rad, ringAt, run, seg,
@@ -28,8 +30,9 @@ const NA = (247 * Math.PI) / 180, N = [Math.cos(NA), Math.sin(NA)], E = [-Math.s
 const wrap24 = (h) => ((h % 24) + 24) % 24;
 const hh = (h) => String(Math.round(wrap24(h)) % 24).padStart(2, "0") + ":00";
 
-function mount({ stage, svg, read, sun = SUN }, value) {
+function mount({ stage, svg, read, sun: given = SUN }, value) {
   const bag = disposer();
+  const sun = { ...given };
   const sinL = Math.sin(rad(clamp(Math.abs(sun.lat), 15, 65)));
   const GH = GL * Math.tan(rad(clamp(Math.abs(sun.lat), 25, 55)));
   const day = (h) => { const w = wrap24(h); return w >= sun.rise && w <= sun.set; };
@@ -135,6 +138,7 @@ function mount({ stage, svg, read, sun = SUN }, value) {
   drawShadow();
   return {
     set: (v) => { detent = v; if (over) retarget(); },
+    sun: (next) => { Object.assign(sun, next); lit = -1; drawn = NaN; retarget(); },
     destroy: bag.dispose,
   };
 }

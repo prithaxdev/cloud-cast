@@ -1,5 +1,5 @@
 import * as React from "react"
-import { mountSundial } from "@/lib/hairline"
+import { mountSundial, type SundialHandle } from "@/lib/hairline"
 
 type SunDialProps = {
   sunrise: string // "YYYY-MM-DDTHH:MM", location-local
@@ -34,20 +34,35 @@ const PALETTE = {
   "--hairline-lo": "color-mix(in srgb, var(--muted-foreground) 28%, var(--card))",
 } as React.CSSProperties
 
+/** The figure's read-out, "14:00" or "05:00 · dark", as the hour it names, or null at rest. */
+function readHour(text: string) {
+  const m = /^(\d{2}):00/.exec(text)
+  return m ? Number(m[1]) : null
+}
+
 export function SunDial({ sunrise, sunset, nowMinutes, latitude }: SunDialProps) {
   const stageRef = React.useRef<HTMLDivElement>(null)
+  const handleRef = React.useRef<SundialHandle | null>(null)
+  const [reading, setReading] = React.useState("rest")
   const rise = toMinutes(sunrise)
   const set = toMinutes(sunset)
 
+  // The dial's geometry depends on the latitude only; the day moves on below
+  // without a remount, so a hand on the dial survives the clock ticking.
+  const firstDay = React.useEffectEvent(() => ({ rise: rise / 60, set: set / 60, now: nowMinutes / 60 }))
   React.useEffect(() => {
     if (!stageRef.current) return
-    return mountSundial(stageRef.current, {
-      lat: latitude,
-      rise: rise / 60,
-      set: set / 60,
-      now: nowMinutes / 60,
-    })
-  }, [latitude, rise, set, nowMinutes])
+    const handle = mountSundial(stageRef.current, { lat: latitude, ...firstDay() }, setReading)
+    handleRef.current = handle
+    return () => {
+      handle.destroy()
+      handleRef.current = null
+    }
+  }, [latitude])
+
+  React.useEffect(() => {
+    handleRef.current?.update({ rise: rise / 60, set: set / 60, now: nowMinutes / 60 })
+  }, [rise, set, nowMinutes])
 
   const isUp = nowMinutes >= rise && nowMinutes <= set
   const status = isUp
@@ -55,6 +70,16 @@ export function SunDial({ sunrise, sunset, nowMinutes, latitude }: SunDialProps)
     : nowMinutes < rise
       ? `Sunrise in ${duration(rise - nowMinutes)}`
       : `Sun set ${duration(nowMinutes - set)} ago`
+
+  // While a hand is on the dial, the caption names the hour it points at.
+  const hour = readHour(reading)
+  const pointed =
+    hour === null
+      ? null
+      : {
+          time: `${hour % 12 || 12} ${hour >= 12 ? "PM" : "AM"}`,
+          light: hour * 60 < rise ? "Before sunrise" : hour * 60 > set ? "After sunset" : "Sun up",
+        }
 
   return (
     <figure className="w-full">
@@ -74,8 +99,10 @@ export function SunDial({ sunrise, sunset, nowMinutes, latitude }: SunDialProps)
           <p className="mt-0.5 font-mono text-[13px] text-foreground">{toClock(sunrise)}</p>
         </div>
         <div className="text-center">
-          <p className="text-[13px] text-subtle-foreground">{status}</p>
-          <p className="mt-0.5 font-mono text-muted-foreground">{duration(set - rise)} of daylight</p>
+          <p className="text-[13px] text-subtle-foreground">{pointed ? pointed.time : status}</p>
+          <p className="mt-0.5 font-mono text-muted-foreground">
+            {pointed ? pointed.light : `${duration(set - rise)} of daylight`}
+          </p>
         </div>
         <div className="text-right">
           <p className="text-muted-foreground">Sunset</p>
