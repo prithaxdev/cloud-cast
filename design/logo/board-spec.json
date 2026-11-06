@@ -1,0 +1,40 @@
+{
+  "brand": "Cloudcast",
+  "tagline": "Weather for the hours you spend outside",
+  "brief": "A free weather dashboard: current conditions, hourly and 7-day forecasts, a map, and the best hours to head out. It should feel observant, plainspoken and outdoorsy, and move away from the orange-cloud look of another well-known brand.",
+  "adjectives": [
+    "observant",
+    "plainspoken",
+    "outdoorsy"
+  ],
+  "criteria": "Distinct from cloud-and-sun weather icons, recognisable at 16 px, works in one colour, keeps the brand orange.",
+  "industry": "consumer-app",
+  "nav": [
+    "Today",
+    "Hourly",
+    "Charts"
+  ],
+  "brand_color": "#FF6900",
+  "greyscale": false,
+  "final": true,
+  "round": 2,
+  "concepts": [
+    {
+      "name": "Sun path",
+      "symbol": "cloudcast-symbol.svg",
+      "lockup": "cloudcast-horizontal.svg",
+      "stacked": "cloudcast-stacked.svg",
+      "symbol_on_tile": "cloudcast-symbol-reversed.svg",
+      "lockup_on_dark": "cloudcast-horizontal-reversed.svg",
+      "idea": "The C is the sun's path across the day; the dot is the sun now.",
+      "rationale": [
+        "The same idea as the dashboard's sundial and its orange Now mark",
+        "Keeps the brand orange in one place, with no cloud to confuse with Cloudflare",
+        "A small cut for 16 to 48 px keeps the sun clear of the C's tip"
+      ],
+      "symbol_on_dark": "cloudcast-symbol-reversed.svg"
+    }
+  ],
+  "recommendation": "Sun path: one ownable idea that runs from the favicon to the product's own sundial.",
+  "tile_color": "#131416"
+}
