@@ -30,7 +30,7 @@ export const TopBar = () => {
   return (
     <header className="sticky top-0 z-1003 border-b border-border bg-background">
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo size={24} />
+        <Logo size={36} />
 
         <SearchDialog />
 
