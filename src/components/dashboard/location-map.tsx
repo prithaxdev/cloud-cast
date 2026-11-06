@@ -46,8 +46,7 @@ const TILE_LAYERS: Record<
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     dark: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     label: "Satellite",
-    attribution:
-      "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP",
+    attribution: "&copy; Esri, Maxar, Earthstar Geographics",
   },
   terrain: {
     // ESRI World Topo Map — free, no API key
@@ -55,8 +54,7 @@ const TILE_LAYERS: Record<
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
     dark: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
     label: "Terrain",
-    attribution:
-      "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China",
+    attribution: "&copy; Esri, HERE, Garmin, USGS, OSM",
   },
 }
 
